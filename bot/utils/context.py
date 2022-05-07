@@ -1,0 +1,30 @@
+
+from typing import Any, TYPE_CHECKING, Optional
+
+import discord
+from discord.ext import commands
+
+from .utils import ConfirmView
+
+if TYPE_CHECKING:
+    from ..bot import BombBot
+
+class BombContext(commands.Context['BombBot']):
+
+    async def reply(self, content: Any = None, **kwargs: Any) -> discord.Message:
+        mention_author = kwargs.pop('mention_author', False)
+        
+        return await super().reply(
+            content=content, 
+            mention_author=mention_author, 
+            **kwargs
+        )
+
+    async def confirm(self, user: discord.Member, message: Optional[str] = None, *, timeout: Optional[float] = None) -> bool:
+        message = message or f'{user.mention} do you accept?'
+
+        view = ConfirmView(user, timeout=timeout)
+        await self.send(content=message, view=view)
+
+        await view.wait()
+        return view.value
