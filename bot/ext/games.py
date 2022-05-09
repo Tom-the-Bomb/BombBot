@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Literal
 
 import discord_games as games
 from discord_games import button_games
@@ -68,8 +68,8 @@ class Games(commands.Cog):
 
     @commands.command(name='twenty48', aliases=['2048'])
     @commands.max_concurrency(1, commands.BucketType.channel)
-    async def twenty48(self, ctx: BombContext):
-        game = button_games.BetaTwenty48(self.twenty_48_emojis)
+    async def twenty48(self, ctx: BombContext, render_image: Literal['-r'] = False):
+        game = button_games.BetaTwenty48(self.twenty_48_emojis, render_image=render_image)
         await game.start(ctx, timeout=600, delete_button=True)
 
     @commands.command(name='akinator', aliases=['aki', 'guesscharacter', 'characterguess', 'guess'])
@@ -88,7 +88,7 @@ class Games(commands.Cog):
     @commands.max_concurrency(2, commands.BucketType.channel)
     async def typerace(self, ctx: BombContext):
         game = games.TypeRacer()
-        await game.start(ctx, timeout=30)
+        await game.start(ctx)
         
     @commands.command(name='battleship', aliases=['bs'])
     @commands.max_concurrency(1, commands.BucketType.user)
@@ -123,8 +123,8 @@ class Games(commands.Cog):
 
     @commands.command(name='country', aliases=['cg'])
     @commands.max_concurrency(1, commands.BucketType.channel)
-    async def country(self, ctx: BombContext):
-        game = button_games.BetaCountryGuesser()
+    async def country(self, ctx: BombContext, guess_flags: Literal['-f'] = False):
+        game = button_games.BetaCountryGuesser(is_flags=guess_flags)
         await game.start(ctx, timeout=1200)
 
     @commands.command(name='slider', aliases=['slide', 'slidepuzzle', 'numberslider'])

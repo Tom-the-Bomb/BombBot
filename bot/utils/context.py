@@ -20,11 +20,18 @@ class BombContext(commands.Context['BombBot']):
             **kwargs
         )
 
-    async def confirm(self, user: discord.Member, message: Optional[str] = None, *, timeout: Optional[float] = None) -> bool:
+    async def confirm(self, user: discord.Member, message: Optional[str] = None, *, timeout: Optional[float] = 1200) -> bool:
         message = message or f'{user.mention} do you accept?'
 
         view = ConfirmView(user, timeout=timeout)
-        await self.send(content=message, view=view)
+        msg = await self.send(content=message, view=view)
 
         await view.wait()
+
+        if view.has_timeout:
+            return await msg.edit(
+                content=f'Looks like {user.mention} did not respond.', 
+                allowed_mentions=discord.AllowedMentions.none()
+            )
+
         return view.value

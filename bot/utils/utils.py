@@ -64,6 +64,12 @@ class ConfirmView(AuthorOnlyView):
         super().__init__(user, timeout=timeout)
 
         self.value: bool = False
+        self.has_timeout: bool = False
+
+    async def on_timeout(self) -> None:
+        self.has_timeout = True
+        self.disable_all()
+        return self.stop()
 
     @discord.ui.button(label='yes', style=discord.ButtonStyle.green)
     async def yes_button(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
