@@ -14,21 +14,23 @@ class Games(commands.Cog):
     def __init__(self, bot: BombBot) -> None:
         self.bot = bot
         self.twenty_48_emojis: dict[str, str] = {
-        '0': '<:_0:972626053078069298>',
-        '2': '<:_2:972626055087136789>',
-        '4': '<:_4:972626057398210590>',
-        '8': '<:_8:972626059923185724>',
-        '16': '<:_16:972626061923864586>',
-        '32': '<:_32:972626074951368714>',
-        '64': '<:_64:972626077337919608>',
-        '128': '<:_128:972626079388926063>',
-        '256': '<:_256:972626081251205120>',
-        '512': '<:_512:972626083180576838>',
-        '1024': '<:_1024:972626096820473917>',
-        '2048': '<:_2048:972626098972164137>',
-        '4096': '<:_4096:972626101828460664>',
-        '8192': '<:_8192:972626103854309477>',
-    }
+            '0': '<:_0:972626053078069298>',
+            '2': '<:_2:972626055087136789>',
+            '4': '<:_4:972626057398210590>',
+            '8': '<:_8:972626059923185724>',
+            '16': '<:_16:972626061923864586>',
+            '32': '<:_32:972626074951368714>',
+            '64': '<:_64:972626077337919608>',
+            '128': '<:_128:972626079388926063>',
+            '256': '<:_256:972626081251205120>',
+            '512': '<:_512:972626083180576838>',
+            '1024': '<:_1024:972626096820473917>',
+            '2048': '<:_2048:972626098972164137>',
+            '4096': '<:_4096:972626101828460664>',
+            '8192': '<:_8192:972626103854309477>',
+        }
+
+        self.is_in_battleship: set[discord.Member] = set()
 
     @commands.command(name='connect4', aliases=['c4'])
     @commands.max_concurrency(1, commands.BucketType.channel)
@@ -93,9 +95,22 @@ class Games(commands.Cog):
     @commands.command(name='battleship', aliases=['bs'])
     @commands.max_concurrency(1, commands.BucketType.user)
     async def battleship(self, ctx: BombContext, opponent: discord.Member):
+        no_mentions = discord.AllowedMentions.none()
+        if ctx.author in self.is_in_battleship:
+            return await ctx.send(f'{ctx.author.mention} is already in a game!', allowed_mentions=no_mentions)
+
+        if opponent in self.is_in_battleship:
+            return await ctx.send(f'{opponent.mention} is already in a game!', allowed_mentions=no_mentions)
+
         if await ctx.confirm(opponent, f'{opponent.mention} do you accept to play battleship?'):
+            self.is_in_battleship.add(ctx.author)
+            self.is_in_battleship.add(opponent)
+
             game = button_games.BetaBattleShip(ctx.author, opponent)
             await game.start(ctx, timeout=1800)
+
+            self.is_in_battleship.remove(ctx.author)
+            self.is_in_battleship.remove(opponent)
 
     @commands.command(name='wordle', aliases=['wd'])
     @commands.max_concurrency(1, commands.BucketType.user)
