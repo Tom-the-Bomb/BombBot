@@ -1,0 +1,11 @@
+{
+    "TOKEN": "[TOKEN OMITTED]",
+    "PREFIXES": [
+        "std::",
+        "::",
+        "f::",
+        "g::",
+        "b::",
+        "bomb::"
+    ]
+}
