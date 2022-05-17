@@ -9,6 +9,7 @@ from discord.ext import commands
 from ..utils.context import BombContext
 from ..bot import BombBot
 
+
 class Games(commands.Cog):
 
     def __init__(self, bot: BombBot) -> None:
@@ -33,7 +34,8 @@ class Games(commands.Cog):
         self.is_in_battleship: set[discord.Member] = set()
 
     @commands.command(name='connect4', aliases=['c4'])
-    @commands.max_concurrency(1, commands.BucketType.channel)
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.cooldown(1, 20, commands.BucketType.user)
     async def connect4(self, ctx: BombContext, opponent: discord.Member) -> None:
         if await ctx.confirm(opponent, f'{opponent.mention} do you accept to play connect 4?'):
             game = games.ConnectFour(
@@ -43,8 +45,9 @@ class Games(commands.Cog):
             await game.start(ctx)
     
     @commands.command(name='tictactoe', aliases=['ttt'])
-    @commands.max_concurrency(1, commands.BucketType.channel)
-    async def tictactoe(self, ctx: BombContext, opponent: discord.Member):
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.cooldown(1, 20, commands.BucketType.user)
+    async def tictactoe(self, ctx: BombContext, opponent: discord.Member) -> None:
         if await ctx.confirm(opponent, f'{opponent.mention} do you accept to play tictactoe?'):
             game = button_games.BetaTictactoe(
                 cross=ctx.author,         
@@ -53,14 +56,16 @@ class Games(commands.Cog):
             await game.start(ctx, timeout=600)
 
     @commands.command(name='hangman')
-    @commands.max_concurrency(1, commands.BucketType.channel)
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.cooldown(1, 20, commands.BucketType.user)
     async def hangman(self, ctx: BombContext):
         game = button_games.BetaHangman()
         await game.start(ctx, timeout=600)
 
     @commands.command(name='chess')
-    @commands.max_concurrency(1, commands.BucketType.channel)
-    async def chess(self, ctx: BombContext, opponent: discord.Member):
+    @commands.max_concurrency(2, commands.BucketType.channel)
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    async def chess(self, ctx: BombContext, opponent: discord.Member) -> None:
         if await ctx.confirm(opponent, f'{opponent.mention} do you accept to play chess?'):
             game = button_games.BetaChess(
                 white=ctx.author,         
@@ -69,14 +74,16 @@ class Games(commands.Cog):
             await game.start(ctx, timeout=1000)
 
     @commands.command(name='twenty48', aliases=['2048'])
-    @commands.max_concurrency(1, commands.BucketType.channel)
-    async def twenty48(self, ctx: BombContext, render_image: Literal['-r'] = False):
-        game = button_games.BetaTwenty48(self.twenty_48_emojis, render_image=render_image)
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.cooldown(1, 20, commands.BucketType.user)
+    async def twenty48(self, ctx: BombContext, render_image: Optional[Literal['-r']]) -> None:
+        game = button_games.BetaTwenty48(self.twenty_48_emojis, render_image=bool(render_image))
         await game.start(ctx, timeout=600, delete_button=True)
 
     @commands.command(name='akinator', aliases=['aki', 'guesscharacter', 'characterguess', 'guess'])
-    @commands.max_concurrency(1, commands.BucketType.channel)
-    async def akinator(self, ctx: BombContext):
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.cooldown(1, 30, commands.BucketType.user)
+    async def akinator(self, ctx: BombContext) -> None:
         async with ctx.typing():
             game = button_games.BetaAkinator()
             await game.start(
@@ -88,13 +95,15 @@ class Games(commands.Cog):
 
     @commands.command(name='typerace', aliases=['tr'])
     @commands.max_concurrency(2, commands.BucketType.channel)
-    async def typerace(self, ctx: BombContext):
+    @commands.cooldown(1, 20, commands.BucketType.channel)
+    async def typerace(self, ctx: BombContext) -> None:
         game = games.TypeRacer()
         await game.start(ctx)
         
     @commands.command(name='battleship', aliases=['bs'])
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def battleship(self, ctx: BombContext, opponent: discord.Member):
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    async def battleship(self, ctx: BombContext, opponent: discord.Member) -> None:
         no_mentions = discord.AllowedMentions.none()
         if ctx.author in self.is_in_battleship:
             return await ctx.send(f'{ctx.author.mention} is already in a game!', allowed_mentions=no_mentions)
@@ -114,44 +123,68 @@ class Games(commands.Cog):
 
     @commands.command(name='wordle', aliases=['wd'])
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def worldle(self, ctx: BombContext):
+    @commands.cooldown(1, 20, commands.BucketType.user)
+    async def wordle(self, ctx: BombContext) -> None:
         game = button_games.BetaWordle()
         await game.start(ctx)
 
     @commands.command(name='memory-game', aliases=['mem'])
-    @commands.max_concurrency(1, commands.BucketType.channel)
-    async def memory_game(self, ctx: BombContext):
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.cooldown(1, 20, commands.BucketType.user)
+    async def memory_game(self, ctx: BombContext) -> None:
         game = button_games.MemoryGame()
         await game.start(ctx, timeout=300)
 
     @commands.command(name='rockpaperscissors', aliases=['rps'])
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def rps(self, ctx: BombContext, member: Optional[discord.Member] = None):
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def rps(self, ctx: BombContext, member: Optional[discord.Member] = None) -> None:
         game = button_games.BetaRockPaperScissors(member)
         await game.start(ctx, timeout=120)
 
     @commands.command(name='reaction', aliases=['react'])
-    @commands.max_concurrency(1, commands.BucketType.user)
-    async def reaction(self, ctx: BombContext):
+    @commands.max_concurrency(1, commands.BucketType.channel)
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def reaction(self, ctx: BombContext) -> None:
         game = button_games.BetaReactionGame()
         await game.start(ctx, timeout=60)
 
     @commands.command(name='country', aliases=['cg'])
-    @commands.max_concurrency(1, commands.BucketType.channel)
-    async def country(self, ctx: BombContext, guess_flags: Literal['-f'] = False):
-        game = button_games.BetaCountryGuesser(is_flags=guess_flags)
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.cooldown(1, 20, commands.BucketType.user)
+    async def country(
+        self, 
+        ctx: BombContext, 
+        guess_flags: Optional[Literal['-f']], 
+        light_mode: Optional[Literal['-l']],
+        blur: Optional[Literal['-b']],
+    ) -> None:
+        game = button_games.BetaCountryGuesser(
+            is_flags=bool(guess_flags),
+            hard_mode=bool(blur),
+            light_mode=bool(light_mode),
+        )
         await game.start(ctx, timeout=1200)
 
     @commands.command(name='slider', aliases=['slide', 'slidepuzzle', 'numberslider'])
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def number_slider(self, ctx: BombContext, *, count: commands.Range[int, 1, 5] = 4):
+    @commands.cooldown(1, 20, commands.BucketType.user)
+    async def number_slider(self, ctx: BombContext, *, count: commands.Range[int, 1, 5] = 4) -> None:
         game = button_games.NumberSlider(count)
         await game.start(ctx, timeout=600)
 
     @commands.command(name='lightsout', aliases=['lo'])
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def lights_out(self, ctx: BombContext, *, count: commands.Range[int, 1, 5] = 4):
+    @commands.cooldown(1, 20, commands.BucketType.user)
+    async def lights_out(self, ctx: BombContext, *, count: commands.Range[int, 1, 5] = 4) -> None:
         game = button_games.LightsOut(count)
+        await game.start(ctx, timeout=600)
+
+    @commands.command(name='boggle', aliases=['bg'])
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.cooldown(1, 20, commands.BucketType.user)
+    async def boggle(self, ctx: BombContext) -> None:
+        game = button_games.Boggle()
         await game.start(ctx, timeout=600)
 
 async def setup(bot: BombBot) -> None:

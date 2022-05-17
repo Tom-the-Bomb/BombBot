@@ -3,7 +3,10 @@ import os
 import json
 import logging
 import traceback
+from math import ceil
+from io import BytesIO
 
+import jishaku
 import discord
 from discord.ext import commands
 from aiohttp import MultipartWriter, ClientSession
@@ -71,9 +74,13 @@ class BombBot(commands.Bot):
         self.session = ClientSession()
         return await self.load_all_cogs()
     
-    async def load_all_cogs(self, *, jishaku: bool = True) -> None:
+    async def load_all_cogs(self, *, load_jishaku: bool = True) -> None:
 
-        if jishaku:
+        if load_jishaku:
+            jishaku.Flags.NO_UNDERSCORE = True
+            jishaku.Flags.NO_DM_TRACEBACK = True
+            jishaku.Flags.HIDE = True
+
             await self.load_extension('jishaku')
 
         for ext in os.listdir('./bot/ext'):
@@ -121,7 +128,17 @@ class BombBot(commands.Bot):
                 paste = 'https://mystb.in/' + data['pastes'][0]['id']
                 return paste
 
-    async def on_command_error(self, ctx: BombContext, error: Exception) -> None:
+    async def get_twemoji(self, emoji: str) -> Optional[bytes]:
+        try:
+            url = f'https://twemoji.maxcdn.com/v/latest/72x72/{ord(emoji):x}.png'
+
+            async with self.session.get(url) as r:
+                if r.ok:
+                    return await r.read()
+        except Exception:
+            return None
+
+    async def on_command_error(self, ctx: BombContext, error: Exception) -> Optional[discord.Message]:
 
         IGNORE_EXC = (
             commands.CommandNotFound,
@@ -132,12 +149,30 @@ class BombBot(commands.Bot):
 
         if isinstance(error, IGNORE_EXC):
             return
+
         elif isinstance(error, commands.CommandOnCooldown):
-            return await ctx.send('you are on cooldown.')
+            return await ctx.send(
+                f'You are on cooldown! Try again after `{ceil(error.retry_after)}s`\n\n'
+                f'`{ctx.command.qualified_name}` can only be used every `{round(error.cooldown.per)}s` per **{error.type.name}**'
+            )
+
         elif isinstance(error, commands.MaxConcurrencyReached):
-            return await ctx.send('max concurrency reached for this command')
+            return await ctx.send(f'`{ctx.command.qualified_name}` can only be used `{error.number}` times per **{error.per.name}**')
+
+        if ctx.command:
+            ctx.command.reset_cooldown(ctx)
+
+        if isinstance(error, commands.BadLiteralArgument):
+            return await ctx.send(f'input value for `{error.param.name}` must be either `{error.literals[0]}` or nothing') 
+
+        elif isinstance(error, commands.RangeError):
+            return await ctx.send(f'value must be between `{error.minimum}` and `{error.maximum}`, not `{error.value}`')
+
+        elif isinstance(error, commands.MissingRequiredArgument):
+            return await ctx.send(f'`{error.param.name}` is a required argument that is missing for the command `{ctx.command.qualified_name}`')
+
         else:
-            trace = traceback.format_exception(type(error), error, error.__traceback__)
+            trace = traceback.format_exception(error.__class__, error, error.__traceback__)
             trace = f"```py\n{''.join(trace)}\n```"
             
             if len(trace) > 2000:
