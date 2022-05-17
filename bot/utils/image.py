@@ -64,7 +64,7 @@ class ImageConverter:
 
         return source
 
-    async def get_attachments(self, message: Optional[discord.Message] = None) -> bytes | None:
+    async def get_attachments(self, message: Optional[discord.Message] = None) -> Optional[bytes]:
         source = None
         message = message or self.ctx.message
 
@@ -82,10 +82,9 @@ class ImageConverter:
                         break
                     except commands.BadArgument:
                         continue
-
         return source
  
-    async def get_sticker_image(self, stickers: list[discord.StickerItem]) -> bytes | None:
+    async def get_sticker_image(self, stickers: list[discord.StickerItem]) -> Optional[bytes]:
         sticker = stickers[0]
 
         if not sticker.format == discord.StickerFormatType.lottie:
@@ -94,13 +93,13 @@ class ImageConverter:
             except commands.BadArgument:
                 return None
 
-    async def get_file_image(self, files: list[discord.Attachment]) -> bytes | None:
+    async def get_file_image(self, files: list[discord.Attachment]) -> Optional[bytes]:
         file = files[0]
 
         if file.content_type and file.content_type.startswith('image/'):
             return await file.read()
 
-    async def try_to_convert(self, argument: str) -> bytes | None:
+    async def try_to_convert(self, argument: str) -> Optional[bytes]:
 
         for converter in self._converters:
             try:
@@ -125,7 +124,6 @@ class ImageConverter:
             source = await self.get_attachments()
         
             if (ref := self.ctx.message.reference) and source is None:
-
                 ref = ref.resolved
 
                 if not isinstance(ref, discord.DeletedReferencedMessage) and ref:
