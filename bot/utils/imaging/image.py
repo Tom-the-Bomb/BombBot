@@ -1,13 +1,23 @@
-from typing import ClassVar, Optional
+from __future__ import annotations
+
+from typing import ClassVar, Optional, TypeAlias, TYPE_CHECKING
 from io import BytesIO
 
 import discord
 from discord.ext import commands
-from typing_extensions import TypeAlias
 
-from .context import BombContext
+if TYPE_CHECKING:
+    from ..context import BombContext
 
-Argument: TypeAlias = discord.Member | discord.User | discord.PartialEmoji | bytes
+    Argument: TypeAlias = discord.Member | discord.User | discord.PartialEmoji | bytes
+
+
+__all__: tuple[str, ...] = (
+    'ImageTooLarge',
+    'DefaultEmojiConverter',
+    'UrlConverter',
+    'ImageConverter',
+)
 
 class ImageTooLarge(commands.CheckFailure):
     pass

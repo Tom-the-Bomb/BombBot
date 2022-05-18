@@ -4,7 +4,7 @@ from typing import Any, TYPE_CHECKING, Optional
 import discord
 from discord.ext import commands
 
-from .utils import ConfirmView
+from .helpers import ConfirmView
 
 if TYPE_CHECKING:
     from ..bot import BombBot

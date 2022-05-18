@@ -1,7 +1,9 @@
+from __future__ import annotations
 
-from typing import Final
+from typing import Optional, Final, TYPE_CHECKING
 from io import BytesIO, StringIO
 import contextlib
+import difflib
 
 import discord
 from discord.ext import commands
@@ -10,18 +12,41 @@ from PIL import Image
 from jishaku.codeblocks import codeblock_converter
 from fstop import Runner
 
-from ..utils.context import BombContext
-from ..bot import BombBot
+if TYPE_CHECKING:
+    from ..utils.context import BombContext
+    from ..bot import BombBot
 
 class Owner(commands.Cog):
 
     def __init__(self, bot: BombBot) -> None:
-        self.bot = BombBot
+        self.bot = bot
         self.runner: Final[Runner] = Runner(reset_after_execute=True)
 
-    @commands.command(name='fstop', aliases=['fs'])
+    def get_loaded_extension(self, extension: str) -> Optional[str]:
+        extension = extension.lower().strip()
+        extensions = self.bot.extensions.keys()
+
+        if extension in extensions:
+            return extension
+        else:
+            if matches := (
+                [entry for entry in extensions if extension in entry] or 
+                difflib.get_close_matches(extension, extensions)
+            ):
+                return matches[0]
+            else:
+                extensions = [entry.split('.')[-1].lower() for entry in extensions]
+
+                if extension in extensions:
+                    return extension
+                elif matches := difflib.get_close_matches(extension, extensions):
+                    return matches[0]
+                else:
+                    return None
+
+    @commands.command(name='fstop', aliases=('fs',))
     @commands.is_owner()
-    async def run_fstop(self, ctx: BombContext, *, code: codeblock_converter) -> discord.Message:
+    async def run_fstop(self, ctx: BombContext, *, code: codeblock_converter) -> None:
 
         stream = StringIO()
         with contextlib.redirect_stdout(stream):
@@ -36,11 +61,41 @@ class Owner(commands.Cog):
             output = self.runner.streams[0]
         except IndexError:
             content = stream.getvalue() or '\u200b'
-            return await ctx.send(f'```py\n{content}\n```')
+            await ctx.send(f'```py\n{content}\n```')
         else:
             with Image.open(BytesIO(output.getvalue())) as img:
                 ext = img.format.lower()
-            return await ctx.send(file=discord.File(output, f'output.{ext}'))
+            await ctx.send(file=discord.File(output, f'output.{ext}'))
+
+    @commands.command(name='load')
+    async def load(self, ctx: BombContext, *, extension: str) -> None:
+        abs_extension = self.get_extension(extension)
+
+        if not abs_extension:
+            await ctx.send(f'No extension or (similar extensions to {extension}) found')
+        else:
+            await ctx.bot.load_extension(abs_extension)
+            await ctx.send(f'`➡️ {abs_extension}` loaded successfully')
+
+    @commands.command(name='unload')
+    async def unload(self, ctx: BombContext, *, extension: str) -> None:
+        abs_extension = self.get_loaded_extension(extension)
+
+        if not abs_extension:
+            await ctx.send(f'No extension or (similar extensions to {extension}) found')
+        else:
+            await ctx.bot.unload_extension(abs_extension)
+            await ctx.send(f'`⬅️ {abs_extension}` unloaded successfully')
+
+    @commands.command(name='reload')
+    async def reload(self, ctx: BombContext, *, extension: str) -> None:
+        abs_extension = self.get_loaded_extension(extension)
+
+        if not abs_extension:
+            await ctx.send(f'No extension or (similar extensions to {extension}) found')
+        else:
+            await ctx.bot.reload_extension(abs_extension)
+            await ctx.send(f'`🔁 {abs_extension}` reloaded successfully')
 
 async def setup(bot: BombBot) -> None:
     await bot.add_cog(Owner(bot))

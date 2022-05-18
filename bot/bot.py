@@ -1,5 +1,7 @@
+from distutils.command.build_ext import extension_name_re
+from os import extsep
 from typing import Optional, TypedDict, Any
-import os
+import pathlib
 import json
 import logging
 import traceback
@@ -40,6 +42,12 @@ class BombBot(commands.Bot):
             activity=discord.Game('beep boop'),
             **options,
         )
+
+    @property
+    def all_extensions(self) -> list[str]:
+        exts = pathlib.Path('./bot/ext').glob('**/[!_]*.py')
+        exts = ['.'.join(ext.parts).removesuffix('.py') for ext in exts]
+        return exts
 
     def setup_logging(self) -> logging.Logger:
         logger = logging.getLogger('discord')
@@ -83,11 +91,9 @@ class BombBot(commands.Bot):
 
             await self.load_extension('jishaku')
 
-        for ext in os.listdir('./bot/ext'):
-            if not ext.endswith(".py") or ext == '__init__.py':
-                continue
+        for ext in self.all_extensions:
             try:
-                await self.load_extension('bot.ext.' + ext.removesuffix('.py'))
+                await self.load_extension(ext)
             except Exception as e:
                 self.logger.error(e)
 
