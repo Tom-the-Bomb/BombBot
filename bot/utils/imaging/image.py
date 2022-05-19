@@ -1,149 +1,238 @@
 from __future__ import annotations
 
-from typing import ClassVar, Optional, TypeAlias, TYPE_CHECKING
+from typing import (
+    Final,
+    Optional,
+    Callable,
+    TypeAlias,
+    Concatenate,
+    Awaitable,
+    ParamSpec, 
+    TypeVar, 
+    TYPE_CHECKING,
+)
 from io import BytesIO
+from math import ceil
+from enum import Enum
+import asyncio
 
 import discord
-from discord.ext import commands
+import numpy as np
+from PIL import Image, ImageSequence
+from wand.image import Image as WandImage
+
+from .converter import ImageConverter
 
 if TYPE_CHECKING:
     from ..context import BombContext
 
-    Argument: TypeAlias = discord.Member | discord.User | discord.PartialEmoji | bytes
+    P = ParamSpec('P')
+    C = TypeVar('C', BombContext)
+    I = TypeVar('I', Image.Image)
+    R = TypeVar('R', Image.Image, list[Image.Image], BytesIO)
 
+    I_ = TypeVar('I_', WandImage)
+    R_ = TypeVar('R_', WandImage, list[WandImage], BytesIO)
+
+    PillowParams: TypeAlias = Concatenate[C, I, P]
+    PillowFunction: TypeAlias = Callable[PillowParams, R]
+    PillowThreaded: TypeAlias = Callable[PillowParams, Awaitable[R]]
+
+    WandParams: TypeAlias = Concatenate[C, I_, P]
+    WandFunction: TypeAlias = Callable[WandParams, R_]
+    WandThreaded: TypeAlias = Callable[WandParams, Awaitable[R_]]
 
 __all__: tuple[str, ...] = (
-    'ImageTooLarge',
-    'DefaultEmojiConverter',
-    'UrlConverter',
-    'ImageConverter',
+    'resize_prop',
+    'pil_image',
 )
 
-class ImageTooLarge(commands.CheckFailure):
-    pass
+FORMATS: Final[tuple[str, ...]] = ('png', 'gif')
 
-class DefaultEmojiConverter(commands.Converter):
+class ImageType(Enum):
+    PIL = 0
+    WAND = 1
 
-    async def convert(self, ctx: BombContext, argument: str) -> bytes:
-        emoji = await ctx.bot.get_twemoji(argument)
-        
-        if not emoji:
-            raise commands.BadArgument('Invalid Emoji')
-        else:
-            return emoji
 
-class UrlConverter(commands.Converter):
+def _get_prop_size(
+    image: Image.Image | WandImage,
+    width: Optional[int] = None, 
+    height: Optional[int] = None,
+) -> tuple[int, int]:
 
-    async def convert(self, ctx: BombContext, argument: str) -> bytes:
-        
-        bad_arg = commands.BadArgument('Invalid URL')
-        argument = argument.strip('<>')
-        try:
-            async with ctx.bot.session.get(argument) as r:
-                if r.ok and r.content_type.startswith('image/'):
-                    return await r.read()
-                else:
-                    raise bad_arg
-        except Exception:
-            raise bad_arg
+    if width:
+        height = ceil((width / image.width) * image.height)
+    elif height:
+        width = ceil((height / image.height) * image.width)
+    else:
+        width, height = image.size
 
-class ImageConverter:
-    ctx: BombContext
-    _converters: ClassVar[tuple[type[commands.Converter], ...]] = (
-        commands.MemberConverter,
-        commands.UserConverter,
-        commands.PartialEmojiConverter,
-        DefaultEmojiConverter,
-        UrlConverter,
+    return width, height
+
+
+def resize_pil_prop(
+    image: Image.Image, 
+    width: Optional[int] = None, 
+    height: Optional[int] = None, 
+    *,
+    resampling: Image.Resampling = Image.ANTIALIAS,
+) -> Image.Image:
+
+    if not (width and height):
+        width, height = _get_prop_size(image, width, height)
+    return image.resize((width, height), resampling)
+
+
+def resize_wand_prop(
+    image: WandImage, 
+    width: Optional[int] = None, 
+    height: Optional[int] = None, 
+    *,
+    resampling: str = 'lanczos',
+) -> WandImage:
+
+    if not (width and height):
+        width, height = _get_prop_size(image, width, height)
+
+    image.resize(width, height, filter=resampling)
+    return image
+
+
+def wand_save_list(
+    frames: list[Image.Image | WandImage] | ImageSequence.Iterator, 
+    duration: int | list[int],
+) -> WandImage:
+    
+    is_pil = (
+        isinstance(frames, ImageSequence.Iterator) or
+        isinstance(frames[0], Image.Image)
     )
 
-    def check_size(self, byt: bytes, *, max_size: int = 8_000_000) -> None:
-        MIL = 1_000_000
-        if (size := byt.__sizeof__()) > max_size:
-            raise ImageTooLarge(
-                f'The size of the provided image (`{size / MIL:.2f} MB`) '
-                f'exceeds the limit of `{max_size / MIL} MB`'
-            )
+    base = WandImage()
 
-    async def converted_to_buffer(self, source: Argument) -> bytes:
-        if isinstance(source, discord.Member | discord.User):
-            source = await source.display_avatar.read()
+    for i, frame in enumerate(frames):
 
-        elif isinstance(source, discord.PartialEmoji):
-            source = await source.read()
-
-        return source
-
-    async def get_attachments(self, message: Optional[discord.Message] = None) -> Optional[bytes]:
-        source = None
-        message = message or self.ctx.message
-
-        if files := message.attachments:
-            source = await self.get_file_image(files)
+        if is_pil:
+            frame = np.asarray(frame.convert('RGBA'))
+            frame = WandImage.from_array(frame)
         
-        if (st := message.stickers) and source is None:
-            source = await self.get_sticker_image(st)
-
-        if (embeds := message.embeds) and source is None:
-            for embed in embeds:
-                if img := embed.image.url or embed.thumbnail.url:
-                    try:
-                        source = await UrlConverter().convert(self.ctx, img)
-                        break
-                    except commands.BadArgument:
-                        continue
-        return source
- 
-    async def get_sticker_image(self, stickers: list[discord.StickerItem]) -> Optional[bytes]:
-        sticker = stickers[0]
-
-        if not sticker.format == discord.StickerFormatType.lottie:
-            try:
-                return await UrlConverter().convert(self.ctx, sticker.url)
-            except commands.BadArgument:
-                return None
-
-    async def get_file_image(self, files: list[discord.Attachment]) -> Optional[bytes]:
-        file = files[0]
-
-        if file.content_type and file.content_type.startswith('image/'):
-            return await file.read()
-
-    async def try_to_convert(self, argument: str) -> Optional[bytes]:
-
-        for converter in self._converters:
-            try:
-                source = await converter().convert(self.ctx, argument)
-            except commands.BadArgument:
-                continue
-            else:
-                break
-        else:
-            return None
-
-        return await self.converted_to_buffer(source)
-
-    async def get_image(self, ctx: BombContext, argument: Optional[str]) -> BytesIO:
-        self.ctx = ctx
-        source = None
-
-        if argument is not None:
-            source = await self.try_to_convert(argument)
-
-        if source is None:
-            source = await self.get_attachments()
+        frame.dispose = 'background'
         
-            if (ref := self.ctx.message.reference) and source is None:
-                ref = ref.resolved
+        if isinstance(duration, list):
+            frame.delay = duration[i]
+        elif duration is not None:
+            frame.delay = duration
+        base.sequence.append(frame)
 
-                if not isinstance(ref, discord.DeletedReferencedMessage) and ref:
-                    source = await self.get_attachments(ref)
+    base.dispose = 'background'
+    base.format = 'gif'
+    return base
 
-                    if source is None and ref.content:
-                        source = await self.try_to_convert(ref.content.split()[0])
 
-        if source is None:
-            source = await self.ctx.author.display_avatar.read()
+def save_wand_image(
+    image: WandImage | list[Image.Image | WandImage] | ImageSequence.Iterator,
+    duration: int | list[int] = None,
+    *,
+    file: bool = True,
+) -> discord.File | BytesIO:
 
-        self.check_size(source)
-        return BytesIO(source)
+    is_list = isinstance(image, (list, ImageSequence.Iterator))
+
+    is_gif = (
+        is_list or 
+        getattr(image, 'format', None) == 'gif' or 
+        len(getattr(image, 'sequence', [])) > 0
+    )
+
+    if is_list:
+        image = wand_save_list(image, duration)
+
+    output = BytesIO()
+    image.save(file=output)
+    output.seek(0)
+
+    image.close()
+    del image
+
+    if file:
+        output = discord.File(output, f'output.{FORMATS[is_gif]}')
+    return output
+
+
+def save_pil_image(
+    image: Image.Image | list[Image.Image], 
+    *, 
+    duration: Optional[int] = None,
+    file: bool = True,
+) -> discord.File | BytesIO:
+
+    if is_gif := isinstance(image, list):
+        return save_wand_image(image, duration)
+
+    elif is_gif := getattr(image, 'is_animated', False):
+        return save_wand_image(ImageSequence.Iterator(image), duration)
+
+    output = BytesIO()
+    image.save(output, format='PNG')
+    output.seek(0)
+
+    image.close()
+    del image
+
+    if file:
+        output = discord.File(output, f'output.{FORMATS[is_gif]}')
+    return output
+
+
+def pil_image(
+    width: Optional[int] = None, 
+    height: Optional[int] = None, 
+    *, 
+    auto_save: bool = True,
+    to_file: bool = True,
+) -> Callable[[PillowFunction], PillowThreaded]:
+    def decorator(func: PillowFunction) -> PillowThreaded:
+
+        async def wrapper(ctx: C, img: I, *args: P.args, **kwargs: P.kwargs) -> R:
+            img = await ImageConverter().get_image(ctx, img)
+            
+            def inner(img: BytesIO) -> R:
+                image = Image.open(img)
+                if width or height:
+                    image = resize_pil_prop(image, width, height)
+                result = func(ctx, image, *args, **kwargs)
+
+                if auto_save:
+                    result = save_pil_image(result, file=to_file)
+                return result
+
+            return await asyncio.to_thread(inner, img)
+        return wrapper
+    return decorator
+
+
+def wand_image(
+    width: Optional[int] = None, 
+    height: Optional[int] = None, 
+    *, 
+    auto_save: bool = True,
+    to_file: bool = True,
+) -> Callable[[WandFunction], WandThreaded]:
+    def decorator(func: WandFunction) -> WandThreaded:
+
+        async def wrapper(ctx: C, img: I, *args: P.args, **kwargs: P.kwargs) -> R:
+            img = await ImageConverter().get_image(ctx, img)
+
+            def inner(img: BytesIO) -> R:
+                image = WandImage(file=img)
+                if width or height:
+                    image = resize_wand_prop(image, width, height)
+                result = func(ctx, image, *args, **kwargs)
+
+                if auto_save:
+                    result = save_wand_image(result, file=to_file)
+                return result
+
+            return await asyncio.to_thread(inner, img)
+        return wrapper
+    return decorator

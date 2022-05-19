@@ -22,9 +22,14 @@ class Owner(commands.Cog):
         self.bot = bot
         self.runner: Final[Runner] = Runner(reset_after_execute=True)
 
-    def get_loaded_extension(self, extension: str) -> Optional[str]:
+    async def cog_check(self, ctx: BombContext) -> bool:
+        return ctx.bot.is_owner(ctx.author)
+        
+    def get_extension(self, extension: str, extensions: Optional[list[str]] = None) -> Optional[str]:
         extension = extension.lower().strip()
-        extensions = self.bot.extensions.keys()
+        
+        if not extensions:
+            extensions = tuple(self.bot.extensions.keys())
 
         if extension in extensions:
             return extension
@@ -35,17 +40,16 @@ class Owner(commands.Cog):
             ):
                 return matches[0]
             else:
-                extensions = [entry.split('.')[-1].lower() for entry in extensions]
+                shortened_exts = [entry.split('.')[-1].lower() for entry in extensions]
 
-                if extension in extensions:
-                    return extension
-                elif matches := difflib.get_close_matches(extension, extensions):
-                    return matches[0]
+                if extension in shortened_exts:
+                    return extensions[shortened_exts.index(extension)]
+                elif matches := difflib.get_close_matches(extension, shortened_exts):
+                    return extensions[shortened_exts.index(matches[0])]
                 else:
                     return None
 
     @commands.command(name='fstop', aliases=('fs',))
-    @commands.is_owner()
     async def run_fstop(self, ctx: BombContext, *, code: codeblock_converter) -> None:
 
         stream = StringIO()
@@ -69,7 +73,7 @@ class Owner(commands.Cog):
 
     @commands.command(name='load')
     async def load(self, ctx: BombContext, *, extension: str) -> None:
-        abs_extension = self.get_extension(extension)
+        abs_extension = self.get_extension(extension, ctx.bot.all_extensions)
 
         if not abs_extension:
             await ctx.send(f'No extension or (similar extensions to {extension}) found')
@@ -79,7 +83,7 @@ class Owner(commands.Cog):
 
     @commands.command(name='unload')
     async def unload(self, ctx: BombContext, *, extension: str) -> None:
-        abs_extension = self.get_loaded_extension(extension)
+        abs_extension = self.get_extension(extension)
 
         if not abs_extension:
             await ctx.send(f'No extension or (similar extensions to {extension}) found')
@@ -89,7 +93,7 @@ class Owner(commands.Cog):
 
     @commands.command(name='reload')
     async def reload(self, ctx: BombContext, *, extension: str) -> None:
-        abs_extension = self.get_loaded_extension(extension)
+        abs_extension = self.get_extension(extension)
 
         if not abs_extension:
             await ctx.send(f'No extension or (similar extensions to {extension}) found')

@@ -151,7 +151,7 @@ class BombBot(commands.Bot):
             commands.NotOwner,
         )
 
-        error = getattr(error, 'original', error)
+        error = getattr(error, '__cause__', error)
 
         if isinstance(error, IGNORE_EXC):
             return
@@ -169,13 +169,31 @@ class BombBot(commands.Bot):
             ctx.command.reset_cooldown(ctx)
 
         if isinstance(error, commands.BadLiteralArgument):
-            return await ctx.send(f'input value for `{error.param.name}` must be either `{error.literals[0]}` or nothing') 
+            return await ctx.send(f'input value for `{error.param.name}` must be either `{error.literals[0]}` or nothing')
+
+        elif isinstance(error, commands.MemberNotFound):
+            return await ctx.send(f'Member: `{error.argument}` could not be found')
+
+        elif isinstance(error, commands.UserNotFound):
+            return await ctx.send(f'User: `{error.argument}` could not be found')
 
         elif isinstance(error, commands.RangeError):
             return await ctx.send(f'value must be between `{error.minimum}` and `{error.maximum}`, not `{error.value}`')
 
         elif isinstance(error, commands.MissingRequiredArgument):
             return await ctx.send(f'`{error.param.name}` is a required argument that is missing for the command `{ctx.command.qualified_name}`')
+
+        elif isinstance(error, commands.ExtensionAlreadyLoaded):
+            return await ctx.send(f'Extension `{error.name}` has already been loaded')
+        
+        elif isinstance(error, commands.ExtensionNotLoaded):
+            return await ctx.send(f'Extension `{error.name}` has not been loaded yet')
+
+        elif isinstance(error, commands.ExtensionNotFound):
+            return await ctx.send(f'Extension `{error.name}` has not been found')
+
+        elif isinstance(error, commands.NoEntryPointError):
+            return await ctx.send(f'Extension `{error.name}` does not have a `setup` function')
 
         else:
             trace = traceback.format_exception(error.__class__, error, error.__traceback__)
