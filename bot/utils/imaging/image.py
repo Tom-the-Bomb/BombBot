@@ -49,10 +49,6 @@ __all__: tuple[str, ...] = (
 
 FORMATS: Final[tuple[str, ...]] = ('png', 'gif')
 
-class ImageType(Enum):
-    PIL = 0
-    WAND = 1
-
 
 def _get_prop_size(
     image: Image.Image | WandImage,
