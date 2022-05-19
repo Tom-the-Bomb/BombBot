@@ -42,6 +42,8 @@ if TYPE_CHECKING:
     WandFunction: TypeAlias = Callable[WandParams, R_]
     WandThreaded: TypeAlias = Callable[WandParams, Awaitable[R_]]
 
+    Duration: TypeAlias = list[int] | int | None
+
 __all__: tuple[str, ...] = (
     'resize_prop',
     'pil_image',
@@ -96,7 +98,7 @@ def resize_wand_prop(
 
 def wand_save_list(
     frames: list[Image.Image | WandImage] | ImageSequence.Iterator, 
-    duration: int | list[int],
+    duration: Duration,
 ) -> WandImage:
     
     is_pil = (
@@ -127,8 +129,8 @@ def wand_save_list(
 
 def save_wand_image(
     image: WandImage | list[Image.Image | WandImage] | ImageSequence.Iterator,
-    duration: int | list[int] = None,
     *,
+    duration: Duration = None,
     file: bool = True,
 ) -> discord.File | BytesIO:
 
@@ -183,7 +185,8 @@ def save_pil_image(
 def pil_image(
     width: Optional[int] = None, 
     height: Optional[int] = None, 
-    *, 
+    *,
+    duration: Duration = None,
     auto_save: bool = True,
     to_file: bool = True,
 ) -> Callable[[PillowFunction], PillowThreaded]:
@@ -199,7 +202,7 @@ def pil_image(
                 result = func(ctx, image, *args, **kwargs)
 
                 if auto_save:
-                    result = save_pil_image(result, file=to_file)
+                    result = save_pil_image(result, duration=duration, file=to_file)
                 return result
 
             return await asyncio.to_thread(inner, img)
@@ -210,7 +213,8 @@ def pil_image(
 def wand_image(
     width: Optional[int] = None, 
     height: Optional[int] = None, 
-    *, 
+    *,
+    duration: Duration = None,
     auto_save: bool = True,
     to_file: bool = True,
 ) -> Callable[[WandFunction], WandThreaded]:
@@ -226,7 +230,7 @@ def wand_image(
                 result = func(ctx, image, *args, **kwargs)
 
                 if auto_save:
-                    result = save_wand_image(result, file=to_file)
+                    result = save_wand_image(result, duration=duration, file=to_file)
                 return result
 
             return await asyncio.to_thread(inner, img)
