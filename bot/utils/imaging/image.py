@@ -220,10 +220,10 @@ def wand_image(
 ) -> Callable[[WandFunction], WandThreaded]:
     def decorator(func: WandFunction) -> WandThreaded:
 
-        async def wrapper(ctx: C, img: I, *args: P.args, **kwargs: P.kwargs) -> R:
+        async def wrapper(ctx: C, img: I, *args: P.args, **kwargs: P.kwargs) -> R_:
             img = await ImageConverter().get_image(ctx, img)
 
-            def inner(img: BytesIO) -> R:
+            def inner(img: BytesIO) -> R_:
                 image = WandImage(file=img)
                 if width or height:
                     image = resize_wand_prop(image, width, height)
