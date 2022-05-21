@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 
 from .helpers import ConfirmView
+from .loading import Loading
 
 if TYPE_CHECKING:
     from ..bot import BombBot
@@ -35,3 +36,6 @@ class BombContext(commands.Context['BombBot']):
             )
 
         return view.value
+
+    def loading(self) -> Loading:
+        return Loading(self)

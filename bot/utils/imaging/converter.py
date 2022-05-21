@@ -57,9 +57,10 @@ class ImageConverter:
         UrlConverter,
     )
 
-    def check_size(self, byt: bytes, *, max_size: int = 8_000_000) -> None:
+    def check_size(self, byt: bytes, *, max_size: int = 15_000_000) -> None:
         MIL = 1_000_000
         if (size := byt.__sizeof__()) > max_size:
+            del byt
             raise ImageTooLarge(
                 f'The size of the provided image (`{size / MIL:.2f} MB`) '
                 f'exceeds the limit of `{max_size / MIL} MB`'
@@ -95,19 +96,17 @@ class ImageConverter:
         return source
  
     async def get_sticker_image(self, stickers: list[discord.StickerItem]) -> Optional[bytes]:
-        sticker = stickers[0]
-
-        if not sticker.format == discord.StickerFormatType.lottie:
-            try:
-                return await UrlConverter().convert(self.ctx, sticker.url)
-            except commands.BadArgument:
-                return None
+        for sticker in stickers:
+            if sticker.format is not discord.StickerFormatType.lottie:
+                try:
+                    return await UrlConverter().convert(self.ctx, sticker.url)
+                except commands.BadArgument:
+                    continue
 
     async def get_file_image(self, files: list[discord.Attachment]) -> Optional[bytes]:
-        file = files[0]
-
-        if file.content_type and file.content_type.startswith('image/'):
-            return await file.read()
+        for file in files:
+            if file.content_type and file.content_type.startswith('image/'):
+                return await file.read()
 
     async def try_to_convert(self, argument: str) -> Optional[bytes]:
 
@@ -123,7 +122,7 @@ class ImageConverter:
 
         return await self.converted_to_buffer(source)
 
-    async def get_image(self, ctx: BombContext, argument: Optional[str]) -> BytesIO:
+    async def get_image(self, ctx: BombContext, argument: Optional[str], *, max_size: int = 15_000_000) -> BytesIO:
         self.ctx = ctx
         source = None
 
@@ -145,5 +144,5 @@ class ImageConverter:
         if source is None:
             source = await self.ctx.author.display_avatar.read()
 
-        self.check_size(source)
+        self.check_size(source, max_size=max_size)
         return BytesIO(source)

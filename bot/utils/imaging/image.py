@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import (
+    Any,
     Final,
     Optional,
     Callable,
@@ -13,18 +14,18 @@ from typing import (
 )
 from io import BytesIO
 from math import ceil
-from enum import Enum
 import asyncio
+import time
 
-import discord
 import numpy as np
+import discord
+from discord.ext import commands
 from PIL import Image, ImageSequence
 from wand.image import Image as WandImage
 
 from .converter import ImageConverter
-
+from ..context import BombContext
 if TYPE_CHECKING:
-    from ..context import BombContext
 
     P = ParamSpec('P')
     C = TypeVar('C', BombContext)
@@ -33,6 +34,8 @@ if TYPE_CHECKING:
 
     I_ = TypeVar('I_', WandImage)
     R_ = TypeVar('R_', WandImage, list[WandImage], BytesIO)
+
+    CMD = TypeVar('CMD', bound=commands.Command)
 
     PillowParams: TypeAlias = Concatenate[C, I, P]
     PillowFunction: TypeAlias = Callable[PillowParams, R]
@@ -45,8 +48,15 @@ if TYPE_CHECKING:
     Duration: TypeAlias = list[int] | int | None
 
 __all__: tuple[str, ...] = (
-    'resize_prop',
+    'resize_pil_prop',
+    'resize_wand_prop',
+    'process_wand_gif',
+    'wand_save_list',
+    'save_wand_image',
+    'save_pil_image',
     'pil_image',
+    'wand_image',
+    'image_command',
 )
 
 FORMATS: Final[tuple[str, ...]] = ('png', 'gif')
@@ -68,18 +78,41 @@ def _get_prop_size(
     return width, height
 
 
+def process_wand_gif(
+    image: I_, 
+    func: WandFunction, 
+    ctx: BombContext,
+    *args: P.args, 
+    **kwargs: P.kwargs,
+) -> I_:
+
+    for i, frame in enumerate(image.sequence):
+        result = func(ctx, frame, *args, **kwargs)
+        result.dispose = 'background'
+        image.sequence[i] = result
+
+    image.dispose = 'background'
+    image.format = 'gif'
+    return image
+
 def resize_pil_prop(
     image: Image.Image, 
     width: Optional[int] = None, 
     height: Optional[int] = None, 
     *,
     resampling: Image.Resampling = Image.ANTIALIAS,
-) -> Image.Image:
+) -> list[Image.Image] | Image.Image:
 
     if not (width and height):
         width, height = _get_prop_size(image, width, height)
-    return image.resize((width, height), resampling)
 
+    def resize_image(img: Image.Image) -> Image.Image:
+        return img.resize((width, height), resampling)
+    
+    if getattr(image, 'is_animated', False):
+        image = ImageSequence.all_frames(image, resize_image)
+    else:
+        return resize_image(image)
 
 def resize_wand_prop(
     image: WandImage, 
@@ -199,9 +232,13 @@ def pil_image(
                 image = Image.open(img)
                 if width or height:
                     image = resize_pil_prop(image, width, height)
-                result = func(ctx, image, *args, **kwargs)
 
-                if auto_save:
+                if getattr(image, 'is_animated', False) or image.format == 'gif':
+                    result = ImageSequence.all_frames(image, lambda frame: func(ctx, frame, *args, **kwargs))
+                else:
+                    result = func(ctx, image, *args, **kwargs)
+
+                if auto_save and isinstance(result, (Image.Image, list, ImageSequence.Iterator)):
                     result = save_pil_image(result, duration=duration, file=to_file)
                 return result
 
@@ -227,12 +264,50 @@ def wand_image(
                 image = WandImage(file=img)
                 if width or height:
                     image = resize_wand_prop(image, width, height)
-                result = func(ctx, image, *args, **kwargs)
 
-                if auto_save:
+                if image.sequence or image.format == 'gif':
+                    result = process_wand_gif(image, func, ctx, *args, **kwargs)
+                else:
+                    result = func(ctx, image, *args, **kwargs)
+
+                if auto_save and isinstance(result, (WandImage, list)):
                     result = save_wand_image(result, duration=duration, file=to_file)
                 return result
 
             return await asyncio.to_thread(inner, img)
         return wrapper
+    return decorator
+
+
+async def _do_command(
+    ctx: BombContext, 
+    image: Optional[str] = None, 
+    *, 
+    func: WandThreaded | PillowThreaded,
+) -> None:
+
+    start = time.perf_counter()
+    file = await func(ctx, image)
+    end = time.perf_counter()
+    elapsed = (end - start) * 1000
+
+    await ctx.send(
+        content=f'**Process Time:** `{elapsed:.2f}`', 
+        file=file,
+    )
+
+
+def image_command(*, load: bool = True, **kwargs: Any) -> Callable[[WandThreaded | PillowThreaded], CMD]:
+    def decorator(func: WandThreaded | PillowThreaded) -> CMD:
+
+        @commands.command(**kwargs)
+        async def command_callback(ctx: BombContext, *, image: str = None) -> None:
+            
+            if load:
+                async with ctx.loading():
+                    return await _do_command(ctx, image, func=func)
+            else:
+                return await _do_command(ctx, image, func=func)
+                
+        return command_callback
     return decorator

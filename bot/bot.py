@@ -1,12 +1,9 @@
-from distutils.command.build_ext import extension_name_re
-from os import extsep
 from typing import Optional, TypedDict, Any
 import pathlib
 import json
 import logging
 import traceback
 from math import ceil
-from io import BytesIO
 
 import jishaku
 import discord
@@ -14,6 +11,7 @@ from discord.ext import commands
 from aiohttp import MultipartWriter, ClientSession
 
 from .utils.context import BombContext
+from .utils.imaging.converter import ImageTooLarge
 
 class Config(TypedDict):
     TOKEN: str
@@ -45,7 +43,7 @@ class BombBot(commands.Bot):
 
     @property
     def all_extensions(self) -> list[str]:
-        exts = pathlib.Path('./bot/ext').glob('**/[!_]*.py')
+        exts = pathlib.Path('./bot/ext').glob('**/[!__]*.py')
         exts = ['.'.join(ext.parts).removesuffix('.py') for ext in exts]
         return exts
 
@@ -92,10 +90,11 @@ class BombBot(commands.Bot):
             await self.load_extension('jishaku')
 
         for ext in self.all_extensions:
-            try:
+            #try:
                 await self.load_extension(ext)
-            except Exception as e:
-                self.logger.error(e)
+                self.logger.info(f'{ext} has been loaded')
+            #except Exception as e:
+            #    self.logger.error(e)
 
     async def on_connect(self) -> None:
         self.logger.info('bot is connected')
@@ -151,7 +150,7 @@ class BombBot(commands.Bot):
             commands.NotOwner,
         )
 
-        error = getattr(error, '__cause__', error)
+        error = getattr(error, 'original', error)
 
         if isinstance(error, IGNORE_EXC):
             return
@@ -168,8 +167,11 @@ class BombBot(commands.Bot):
         if ctx.command:
             ctx.command.reset_cooldown(ctx)
 
-        if isinstance(error, commands.BadLiteralArgument):
-            return await ctx.send(f'input value for `{error.param.name}` must be either `{error.literals[0]}` or nothing')
+        if isinstance(error, ImageTooLarge):
+            return await ctx.send(error.args[0])
+
+        elif isinstance(error, commands.BadLiteralArgument):
+            return await ctx.send(f"input value for `{error.param.name}` must be either ({'or'.join(error.literals)}) or nothing")
 
         elif isinstance(error, commands.MemberNotFound):
             return await ctx.send(f'Member: `{error.argument}` could not be found')
