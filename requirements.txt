@@ -2,3 +2,8 @@ git+https://github.com/Rapptz/discord.py.git
 git+https://github.com/Tom-the-Bomb/Discord-Games.git
 git+https://github.com/f-stop-lang/f-stop-rply.git
 jishaku
+Pillow
+wand
+psutil
+bs4
+lxml

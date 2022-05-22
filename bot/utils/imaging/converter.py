@@ -6,7 +6,10 @@ from io import BytesIO
 import discord
 from discord.ext import commands
 
+from ..helpers import Regexes
+
 if TYPE_CHECKING:
+    from aiohttp import ClientResponse
     from ..context import BombContext
 
     Argument: TypeAlias = discord.Member | discord.User | discord.PartialEmoji | bytes
@@ -34,14 +37,34 @@ class DefaultEmojiConverter(commands.Converter):
 
 class UrlConverter(commands.Converter):
 
+    async def find_tenor_gif(self, ctx: BombContext, response: ClientResponse) -> bytes:
+        bad_arg = commands.BadArgument('An Error occured when fetching the tenor GIF')
+        try:
+            content = await response.text()
+            if match := Regexes.TENOR_GIF_REGEX.search(content):
+                async with ctx.bot.session.get(match.group()) as gif:
+                    if gif.ok:
+                        return await gif.read()
+                    else:
+                        raise bad_arg
+            else:
+                raise bad_arg
+        except Exception:
+            raise bad_arg
+
     async def convert(self, ctx: BombContext, argument: str) -> bytes:
         
         bad_arg = commands.BadArgument('Invalid URL')
         argument = argument.strip('<>')
         try:
             async with ctx.bot.session.get(argument) as r:
-                if r.ok and r.content_type.startswith('image/'):
-                    return await r.read()
+                if r.ok:
+                    if r.content_type.startswith('image/'):
+                        return await r.read()
+                    elif Regexes.TENOR_PAGE_REGEX.fullmatch(argument):
+                        return await self.find_tenor_gif(ctx, r)
+                    else:
+                        raise bad_arg
                 else:
                     raise bad_arg
         except Exception:

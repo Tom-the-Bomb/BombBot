@@ -1,8 +1,18 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Awaitable, Optional, Callable, TypeVar, ParamSpec, TypeAlias
+from typing import (
+    TYPE_CHECKING, 
+    Awaitable, 
+    Optional, 
+    Callable, 
+    TypeVar, 
+    ParamSpec, 
+    TypeAlias,
+    ClassVar,
+)
 import functools
 import asyncio
+import re
 
 import discord
 
@@ -12,6 +22,7 @@ __all__: tuple[str, ...] = (
     'AuthorOnlyView',
     'Number',
     'num',
+    'Regexes',
 )
 
 if TYPE_CHECKING:
@@ -39,6 +50,10 @@ def truncate(content: str, limit: int = 2000) -> str:
         return content[:1997] + '...'
     else:
         return content
+
+class Regexes:
+    TENOR_PAGE_REGEX: ClassVar[re.Pattern] = re.compile(r'https?://tenor\.com/view/\S+')
+    TENOR_GIF_REGEX: ClassVar[re.Pattern] = re.compile(r'https?://c\.tenor\.com/\S+/\S+\.gif')
 
 class AuthorOnlyView(discord.ui.View):
 

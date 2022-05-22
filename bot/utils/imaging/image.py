@@ -21,11 +21,13 @@ import numpy as np
 import discord
 from discord.ext import commands
 from PIL import Image, ImageSequence
+from wand.drawing import Drawing
 from wand.image import Image as WandImage
 
 from .converter import ImageConverter
-from ..context import BombContext
+
 if TYPE_CHECKING:
+    from ..context import BombContext
 
     P = ParamSpec('P')
     C = TypeVar('C', BombContext)
@@ -48,6 +50,7 @@ if TYPE_CHECKING:
     Duration: TypeAlias = list[int] | int | None
 
 __all__: tuple[str, ...] = (
+    'wand_circular',
     'resize_pil_prop',
     'resize_wand_prop',
     'process_wand_gif',
@@ -56,10 +59,43 @@ __all__: tuple[str, ...] = (
     'save_pil_image',
     'pil_image',
     'wand_image',
-    'image_command',
+    'do_command',
 )
 
 FORMATS: Final[tuple[str, ...]] = ('png', 'gif')
+
+
+def _wand_circle_mask(width: int, height: int) -> I_:
+    mask = WandImage(
+        width=width, height=height, 
+        background='transparent', colorspace='gray'
+    )
+    with Drawing() as draw:
+        draw.stroke_color = 'black'
+        draw.stroke_width = 1
+        draw.fill_color = 'white'
+        draw.circle(
+            (width // 2, height // 2), 
+            (width // 2, 0)
+        )
+        draw(mask)
+    return mask
+
+WAND_CIRCLE_MASK: WandImage = _wand_circle_mask(1000, 1000)
+WAND_SPHERE_OVERLAY: WandImage = WandImage(
+    filename='C:/Users/Tom the Bomb/BombBot/assets/SPHERE.png'
+)
+
+def wand_circular(img: I_, *, mask: Optional[WandImage] = None) -> I_:
+
+    if WAND_CIRCLE_MASK.size != img.size:
+        mask = WAND_CIRCLE_MASK.clone()
+        mask.resize(*img.size, filter='lanczos')
+    else:
+        mask = WAND_CIRCLE_MASK
+
+    img.composite(mask, left=0, top=0, operator='copy_alpha')
+    return img
 
 
 def _get_prop_size(
@@ -92,7 +128,7 @@ def process_wand_gif(
         image.sequence[i] = result
 
     image.dispose = 'background'
-    image.format = 'gif'
+    image.format = 'GIF'
     return image
 
 def resize_pil_prop(
@@ -156,7 +192,7 @@ def wand_save_list(
         base.sequence.append(frame)
 
     base.dispose = 'background'
-    base.format = 'gif'
+    base.format = 'GIF'
     return base
 
 
@@ -171,12 +207,16 @@ def save_wand_image(
 
     is_gif = (
         is_list or 
-        getattr(image, 'format', None) == 'gif' or 
-        len(getattr(image, 'sequence', [])) > 0
+        getattr(image, 'format', '').lower() == 'gif' or 
+        len(getattr(image, 'sequence', [])) > 1
     )
 
     if is_list:
         image = wand_save_list(image, duration)
+
+    elif is_gif:
+        image.format = 'GIF'
+        image.dispose = 'background'
 
     output = BytesIO()
     image.save(file=output)
@@ -198,10 +238,10 @@ def save_pil_image(
 ) -> discord.File | BytesIO:
 
     if is_gif := isinstance(image, list):
-        return save_wand_image(image, duration)
+        return save_wand_image(image, duration=duration)
 
     elif is_gif := getattr(image, 'is_animated', False):
-        return save_wand_image(ImageSequence.Iterator(image), duration)
+        return save_wand_image(ImageSequence.Iterator(image), duration=duration)
 
     output = BytesIO()
     image.save(output, format='PNG')
@@ -233,7 +273,7 @@ def pil_image(
                 if width or height:
                     image = resize_pil_prop(image, width, height)
 
-                if getattr(image, 'is_animated', False) or image.format == 'gif':
+                if getattr(image, 'is_animated', False) or image.format.lower() == 'gif':
                     result = ImageSequence.all_frames(image, lambda frame: func(ctx, frame, *args, **kwargs))
                 else:
                     result = func(ctx, image, *args, **kwargs)
@@ -251,6 +291,7 @@ def wand_image(
     width: Optional[int] = None, 
     height: Optional[int] = None, 
     *,
+    process_all_frames: bool = True,
     duration: Duration = None,
     auto_save: bool = True,
     to_file: bool = True,
@@ -262,10 +303,12 @@ def wand_image(
 
             def inner(img: BytesIO) -> R_:
                 image = WandImage(file=img)
+                image.background_color = 'none'
+
                 if width or height:
                     image = resize_wand_prop(image, width, height)
 
-                if image.sequence or image.format == 'gif':
+                if process_all_frames and (len(image.sequence) > 1 or image.format.lower() == 'gif'):
                     result = process_wand_gif(image, func, ctx, *args, **kwargs)
                 else:
                     result = func(ctx, image, *args, **kwargs)
@@ -279,10 +322,9 @@ def wand_image(
     return decorator
 
 
-async def _do_command(
+async def _do_command_body(
     ctx: BombContext, 
-    image: Optional[str] = None, 
-    *, 
+    image: Optional[str],
     func: WandThreaded | PillowThreaded,
 ) -> None:
 
@@ -291,23 +333,22 @@ async def _do_command(
     end = time.perf_counter()
     elapsed = (end - start) * 1000
 
-    await ctx.send(
-        content=f'**Process Time:** `{elapsed:.2f}`', 
+    await ctx.reply(
+        content=f'**Process Time:** `{elapsed:.2f} ms`', 
         file=file,
+        mention_author=False,
     )
 
 
-def image_command(*, load: bool = True, **kwargs: Any) -> Callable[[WandThreaded | PillowThreaded], CMD]:
-    def decorator(func: WandThreaded | PillowThreaded) -> CMD:
-
-        @commands.command(**kwargs)
-        async def command_callback(ctx: BombContext, *, image: str = None) -> None:
-            
-            if load:
-                async with ctx.loading():
-                    return await _do_command(ctx, image, func=func)
-            else:
-                return await _do_command(ctx, image, func=func)
-                
-        return command_callback
-    return decorator
+async def do_command(
+    ctx: BombContext, 
+    image: Optional[str],
+    func: WandThreaded | PillowThreaded,
+    *,
+    load: bool = True,
+):
+    if load:
+        async with ctx.loading():
+            return await _do_command_body(ctx, image, func=func)
+    else:
+        return await _do_command_body(ctx, image, func=func)
