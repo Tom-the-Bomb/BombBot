@@ -6,7 +6,7 @@ from wand.image import Image
 from wand.sequence import SingleImage
 
 from .image import (
-    WAND_SPHERE_OVERLAY, 
+    WAND_SPHERE_OVERLAY,
     wand_image, 
     wand_circular,
 )
@@ -22,7 +22,8 @@ __all__: tuple[str, ...] = (
     'bulge',
     'swirl',
     'turn',
-    'sphere',
+    'fisheye',
+    'bomb',
 )
 
 @wand_image()
@@ -112,20 +113,32 @@ def turn(_, img: I) -> I:
     return img
 
 @wand_image(width=300)
-def sphere(_, img: I) -> I:
+def fisheye(_, img: I, *, shade: bool = True, operator: str = 'screen') -> I:
 
     if isinstance(img, SingleImage):
         img = Image(img)
 
     img.background_color = 'none'
     img.virtual_pixel = 'background'
-    img.distort('barrel', (1, 0, 0, 0.2))
+    img.distort('barrel', (1, 0, 0, 0.1))
     img.trim()
     wand_circular(img)
-
-    with WAND_SPHERE_OVERLAY.clone() as overlay:
-        overlay.resize(*img.size, filter='lanczos')
-        img.composite(overlay, left=0, top=0, operator='blend')
-    del overlay
     
+    if shade:
+        with WAND_SPHERE_OVERLAY.clone() as overlay:
+            overlay.resize(*img.size, filter='lanczos')
+            img.composite(overlay, left=0, top=0, operator=operator)
+        del overlay
+    
+    return img
+
+@wand_image(process_all_frames=False)
+def bomb(_, img: I) -> I:
+    if len(img.sequence) == 1 or img.format.lower() != 'gif':
+        img.sequence[0].delay = 200
+        
+    with Image(filename='C:/Users/Tom the Bomb/BombBot/assets/bomb.gif') as bomb:
+        if img.size != bomb.size:
+            bomb.resize(*img.size, filter='lanczos')
+        img.sequence.extend(bomb.sequence)
     return img

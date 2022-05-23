@@ -23,7 +23,7 @@ class Owner(commands.Cog):
         self.runner: Final[Runner] = Runner(reset_after_execute=True)
 
     async def cog_check(self, ctx: BombContext) -> bool:
-        return ctx.bot.is_owner(ctx.author)
+        return await ctx.bot.is_owner(ctx.author)
         
     def get_extension(self, extension: str, extensions: Optional[list[str]] = None) -> Optional[str]:
         extension = extension.lower().strip()

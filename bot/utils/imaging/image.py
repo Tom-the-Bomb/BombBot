@@ -83,7 +83,7 @@ def _wand_circle_mask(width: int, height: int) -> I_:
 
 WAND_CIRCLE_MASK: WandImage = _wand_circle_mask(1000, 1000)
 WAND_SPHERE_OVERLAY: WandImage = WandImage(
-    filename='C:/Users/Tom the Bomb/BombBot/assets/SPHERE.png'
+    filename='C:/Users/Tom the Bomb/BombBot/assets/sphere.png'
 )
 
 def wand_circular(img: I_, *, mask: Optional[WandImage] = None) -> I_:
@@ -259,6 +259,7 @@ def pil_image(
     width: Optional[int] = None, 
     height: Optional[int] = None, 
     *,
+    process_all_frames: bool = True,
     duration: Duration = None,
     auto_save: bool = True,
     to_file: bool = True,
@@ -273,7 +274,7 @@ def pil_image(
                 if width or height:
                     image = resize_pil_prop(image, width, height)
 
-                if getattr(image, 'is_animated', False) or image.format.lower() == 'gif':
+                if process_all_frames and (getattr(image, 'is_animated', False) or image.format.lower() == 'gif'):
                     result = ImageSequence.all_frames(image, lambda frame: func(ctx, frame, *args, **kwargs))
                 else:
                     result = func(ctx, image, *args, **kwargs)
@@ -326,10 +327,11 @@ async def _do_command_body(
     ctx: BombContext, 
     image: Optional[str],
     func: WandThreaded | PillowThreaded,
+    **kwargs: Any,
 ) -> None:
 
     start = time.perf_counter()
-    file = await func(ctx, image)
+    file = await func(ctx, image, **kwargs)
     end = time.perf_counter()
     elapsed = (end - start) * 1000
 
@@ -339,16 +341,16 @@ async def _do_command_body(
         mention_author=False,
     )
 
-
 async def do_command(
     ctx: BombContext, 
     image: Optional[str],
     func: WandThreaded | PillowThreaded,
     *,
     load: bool = True,
-):
+    **kwargs: Any,
+) -> None:
     if load:
         async with ctx.loading():
-            return await _do_command_body(ctx, image, func=func)
+            return await _do_command_body(ctx, image, func=func, **kwargs)
     else:
-        return await _do_command_body(ctx, image, func=func)
+        return await _do_command_body(ctx, image, func=func, **kwargs)

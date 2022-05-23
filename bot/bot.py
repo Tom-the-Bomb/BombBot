@@ -1,4 +1,4 @@
-from typing import Optional, TypedDict, Any
+from typing import Optional, TypedDict, Any, Final
 import pathlib
 import json
 import logging
@@ -18,6 +18,7 @@ class Config(TypedDict):
     PREFIXES: list[str]
 
 class BombBot(commands.Bot):
+    EMBED_COLOR: Final[int] = 0x2F3136
 
     def __init__(self, **options: Any) -> None:
 

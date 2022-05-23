@@ -17,6 +17,7 @@ import re
 import discord
 
 __all__: tuple[str, ...] = (
+    'chunk',
     'to_thread',
     'truncate',
     'AuthorOnlyView',
@@ -30,6 +31,9 @@ if TYPE_CHECKING:
     T = TypeVar('T')
 
 Number: TypeAlias = int | float
+
+def chunk(iterable: list[int], *, count: int) -> list[list[int]]:
+    return [iterable[i:i + count] for i in range(0, len(iterable), count)]
 
 def num(n: str) -> Number:
     n = float(n)
