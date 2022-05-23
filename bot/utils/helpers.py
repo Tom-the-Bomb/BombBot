@@ -67,12 +67,19 @@ class AuthorOnlyView(discord.ui.View):
 
     def __init__(self, author: discord.User, *, timeout: Optional[float] = None):
         super().__init__(timeout=timeout)
+
+        self.message: Optional[discord.Message] = None
         self.author = author
 
     def disable_all(self) -> None:
         for button in self.children:
             if isinstance(button, discord.ui.Button):
                 button.disabled = True
+
+    async def on_timeout(self) -> None:
+        self.disable_all()
+        if self.message:
+            await self.message.edit(view=self)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user != self.author:
@@ -87,15 +94,9 @@ class ConfirmView(AuthorOnlyView):
         super().__init__(user, timeout=timeout)
 
         self.value: bool = False
-        self.has_timeout: bool = False
-
-    async def on_timeout(self) -> None:
-        self.has_timeout = True
-        self.disable_all()
-        return self.stop()
 
     @discord.ui.button(label='yes', style=discord.ButtonStyle.green)
-    async def yes_button(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+    async def yes_button(self, interaction: discord.Interaction, _) -> None:
         self.value = True
         self.disable_all()
         await interaction.response.edit_message(
@@ -106,7 +107,7 @@ class ConfirmView(AuthorOnlyView):
         return self.stop()
 
     @discord.ui.button(label='no', style=discord.ButtonStyle.red)
-    async def no_button(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+    async def no_button(self, interaction: discord.Interaction, _) -> None:
         self.value = False
         self.disable_all()
         await interaction.response.edit_message(
@@ -115,3 +116,34 @@ class ConfirmView(AuthorOnlyView):
             allowed_mentions=discord.AllowedMentions.none()
         )
         return self.stop()
+
+
+class ConfirmDeletionView(AuthorOnlyView):
+
+    @discord.ui.button(label='yes', style=discord.ButtonStyle.green)
+    async def yes_button(self, interaction: discord.Interaction, _) -> None:
+        self.disable_all()
+        try:
+            await self.message.delete()
+        except discord.Forbidden:
+            await interaction.response.send_message('Sorry, I cannot delete messages within a DM', ephemeral=True)
+        else:
+            await interaction.response.edit_message(content='Deleted!', view=self)
+
+    @discord.ui.button(label='no', style=discord.ButtonStyle.red)
+    async def no_button(self, interaction: discord.Interaction, _) -> None:
+        self.disable_all()
+        await interaction.response.edit_message(content='Ok, aborting', view=self)
+
+class DeleteView(AuthorOnlyView):
+
+    @discord.ui.button(emoji='🗑️', style=discord.ButtonStyle.red)
+    async def delete_button(self, interaction: discord.Interaction, _) -> None:
+        view = ConfirmDeletionView(self.author)
+        view.message = self.message
+
+        await interaction.response.send_message(
+            content='Are you sure you want to delete this image?', 
+            view=view,
+            ephemeral=True,
+        )

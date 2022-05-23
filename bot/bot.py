@@ -91,11 +91,11 @@ class BombBot(commands.Bot):
             await self.load_extension('jishaku')
 
         for ext in self.all_extensions:
-            #try:
+            try:
                 await self.load_extension(ext)
                 self.logger.info(f'{ext} has been loaded')
-            #except Exception as e:
-            #    self.logger.error(e)
+            except Exception as e:
+                self.logger.error(e)
 
     async def on_connect(self) -> None:
         self.logger.info('bot is connected')
@@ -107,7 +107,7 @@ class BombBot(commands.Bot):
         await self.session.close()
         return await super().close()
 
-    async def get_context(self, message: discord.Message, *, cls: type[commands.Context] = BombContext) -> commands.Context:
+    async def get_context(self, message: discord.Message, *, cls: type[commands.Context] = BombContext) -> commands.Context | BombContext:
         return await super().get_context(message, cls=cls)
 
     async def post_mystbin(self, code: str, *, language: Optional[str] = None) -> str:
@@ -126,7 +126,7 @@ class BombBot(commands.Bot):
             {'meta': [meta]}
         )
 
-        content.set_content_disposition("form-data", name='meta')
+        content.set_content_disposition('form-data', name='meta')
 
         async with self.session.post(MYSTBIN_URL, data=payload) as r:
             if r.ok:
