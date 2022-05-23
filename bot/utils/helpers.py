@@ -143,7 +143,7 @@ class DeleteView(AuthorOnlyView):
         view.message = self.message
 
         await interaction.response.send_message(
-            content='Are you sure you want to delete this image?', 
+            content='Are you sure you want to delete this?', 
             view=view,
             ephemeral=True,
         )
