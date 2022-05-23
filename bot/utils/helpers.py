@@ -13,6 +13,7 @@ from typing import (
 import functools
 import asyncio
 import re
+import os
 
 import discord
 
@@ -32,6 +33,9 @@ if TYPE_CHECKING:
 
 Number: TypeAlias = int | float
 
+def get_asset(file: str) -> str:
+    return os.path.join('C:/Users/Tom the Bomb/BombBot/assets/', file)
+    
 def chunk(iterable: list[int], *, count: int) -> list[list[int]]:
     return [iterable[i:i + count] for i in range(0, len(iterable), count)]
 

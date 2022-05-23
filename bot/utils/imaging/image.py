@@ -50,6 +50,8 @@ if TYPE_CHECKING:
     Duration: TypeAlias = list[int] | int | None
 
 __all__: tuple[str, ...] = (
+    'pil_colorize',
+    'wand_circle_mask',
     'wand_circular',
     'resize_pil_prop',
     'resize_wand_prop',
@@ -65,11 +67,19 @@ __all__: tuple[str, ...] = (
 FORMATS: Final[tuple[str, ...]] = ('png', 'gif')
 
 
-def _wand_circle_mask(width: int, height: int) -> I_:
+def pil_colorize(img: Image.Image, color: tuple[int, int, int]) -> Image.Image:
+
+    for i, (og, new) in enumerate(zip(bands := list(img.split()), color)):
+        bands[i] = og.point(lambda c: new - 100 if c < 33 else new + 100 if c > 233 else new - 133 + c)
+
+    return Image.merge(img.mode, bands)
+
+def wand_circle_mask(width: int, height: int) -> I_:
     mask = WandImage(
         width=width, height=height, 
         background='transparent', colorspace='gray'
     )
+    mask.antialias = True
     with Drawing() as draw:
         draw.stroke_color = 'black'
         draw.stroke_width = 1
@@ -81,18 +91,11 @@ def _wand_circle_mask(width: int, height: int) -> I_:
         draw(mask)
     return mask
 
-WAND_CIRCLE_MASK: WandImage = _wand_circle_mask(1000, 1000)
-WAND_SPHERE_OVERLAY: WandImage = WandImage(
-    filename='C:/Users/Tom the Bomb/BombBot/assets/sphere.png'
-)
-
 def wand_circular(img: I_, *, mask: Optional[WandImage] = None) -> I_:
 
-    if WAND_CIRCLE_MASK.size != img.size:
-        mask = WAND_CIRCLE_MASK.clone()
+    if mask.size != img.size:
+        mask = mask.clone()
         mask.resize(*img.size, filter='lanczos')
-    else:
-        mask = WAND_CIRCLE_MASK
 
     img.composite(mask, left=0, top=0, operator='copy_alpha')
     return img

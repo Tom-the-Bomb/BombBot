@@ -21,6 +21,11 @@ class BombContext(commands.Context['BombBot']):
             **kwargs
         )
 
+    #async def send(self, content: Any = None, **kwargs: Any) -> discord.Message:
+    #    if kwargs.pop('delete_button', False):
+
+
+
     async def confirm(self, user: discord.Member, message: Optional[str] = None, *, timeout: Optional[float] = 1200) -> bool:
         message = message or f'{user.mention} do you accept?'
 
