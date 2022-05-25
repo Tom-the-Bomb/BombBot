@@ -138,7 +138,7 @@ def image_info(ctx: BombContext, img: Image.Image) -> tuple[discord.File, discor
         except Exception:
             continue
 
-    if palette := img.quantize(colors=5, method=2).getpalette():
+    if palette := img.quantize(colors=5, method=Image.Quantize.FASTOCTREE).getpalette():
         palette = chunk(palette, count=3)[:5]
         palette = '  - ' + '\n  - '.join(map(lambda c: f'rgb{tuple(c)}', palette))
         embed.description += f'---\nTop-palette:\n{palette}'
