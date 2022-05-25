@@ -27,17 +27,19 @@ class BombContext(commands.Context['BombBot']):
                 view.add_item(DeleteView.delete_button)
             else:
                 view = DeleteView(self.author)
-                view.message = self.message
                 kwargs['view'] = view
 
-        return await super().send(content=content, **kwargs)
+        result = await super().send(content=content, **kwargs)
+    
+        if view := kwargs.get('view'):
+            view.message = result
+        return result
 
     async def confirm(self, user: discord.Member, message: Optional[str] = None, *, timeout: Optional[float] = 1200) -> bool:
         message = message or f'{user.mention} do you accept?'
 
         view = ConfirmView(user, timeout=timeout)
-        msg = await self.send(content=message, view=view)
-        view.message = msg
+        view.message = msg = await self.send(content=message, view=view)
 
         if await view.wait():
             await msg.edit(

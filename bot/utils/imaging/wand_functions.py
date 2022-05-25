@@ -13,12 +13,20 @@ from .image import (
 )
 
 if TYPE_CHECKING:
+    from wand.color import Color
     I = TypeVar('I', Image)
 
 __all__: tuple[str, ...] = (
     'blur',
     'emboss',
     'invert',
+    'colorize',
+    'vignette',
+    'wave',
+    'polaroid',
+    'fuzz',
+    'sketch',
+    'replace_color',
     'solarize',
     'arc',
     'floor',
@@ -55,9 +63,45 @@ def invert(_, img: I, *, channel: str = 'RGB') -> I:
     return img
 
 @wand_image()
-def solarize(_, img: I, *, channel: str = 'RGB') -> I:
+def colorize(_, img: I, *, color: Color) -> I:
+    img.tint(color, 'rgb(60%, 60%, 60%)')
+    return img
+
+@wand_image()
+def vignette(_, img: I, *, size: int = 10) -> I:
+    img.vignette(sigma=3, x=size, y=size)
+    return img
+
+@wand_image()
+def wave(_, img: I, *, count: int = 4) -> I:
+    img.wave(amplitude=img.height / 24, wave_length=img.width / count)
+    return img
+
+@wand_image()
+def polaroid(_, img: I) -> I:
+    img.polaroid()
+    return img
+
+@wand_image()
+def fuzz(_, img: I, *, intensity: int = 8) -> I:
+    img.spread(radius=intensity)
+    return img
+
+@wand_image()
+def replace_color(_, img: I, *, target: Color, to: Color) -> I:
+    img.opaque_paint(target, to, fuzz=0.2 * img.quantum_range)
+    return img
+
+@wand_image()
+def sketch(_, img: I) -> I:
+    img.transform_colorspace('gray')
+    img.sketch(0.5, 0.0, 98.0)
+    return img
+
+@wand_image()
+def solarize(_, img: I, *, threshold: float = 0.5, channel: str = 'RGB') -> I:
     img.solarize(
-        threshold=0.5 * img.quantum_range, 
+        threshold=threshold * img.quantum_range, 
         channel=channel,
     )
     return img
@@ -134,6 +178,11 @@ def swirl(_, img: Image) -> Image:
 
 @wand_image(process_all_frames=False)
 def turn(_, img: I) -> I:
+
+    if len(img.sequence) > 1 or img.format.lower() == 'gif':
+        img = Image(img.sequence[0])
+        img.dispose = 'background'
+
     img.rotate(12)
     for i in range(12, 360, 12):
         with img.clone() as clone:
@@ -192,6 +241,7 @@ def huerotate(_, img: Image) -> Image:
     for i in range(1, 360, 10):
         with img.clone() as frame:
             frame.modulate(hue=i)
+            frame.delay = 14
             frame.dispose = 'background'
             base.sequence.append(frame)
         del frame

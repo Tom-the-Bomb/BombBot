@@ -16,7 +16,12 @@ from PIL import (
 )
 
 from ..helpers import to_thread, chunk, get_asset
-from .image import pil_colorize, pil_image, save_pil_image
+from .image import (
+    resize_pil_prop, 
+    pil_colorize, 
+    pil_image, 
+    save_pil_image,
+)
 
 if TYPE_CHECKING:
     from ..context import BombContext
@@ -40,7 +45,7 @@ def _load_mc_colors() -> dict[tuple[int, int, int], Image.Image]:
     return colors
 
 CODE_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(get_asset('GnuUnifontFull-Pm9P.ttf'), 25)
-LEGO: Image.Image = Image.open(get_asset('lego.png')).convert('RGB')
+LEGO: Image.Image = Image.open(get_asset('lego.png')).convert('RGB').resize((30, 30), Image.ANTIALIAS)
 
 MC_COLORS = _load_mc_colors()
 MC_SAMPLE: np.ndarray = np.array(list(MC_COLORS.keys()))
@@ -57,8 +62,9 @@ def mirror(_, img: Image.Image) -> Image.Image:
 def contour(_, img: Image.Image) -> Image.Image:
     return img.filter(ImageFilter.CONTOUR)
 
-@pil_image(height=50, process_all_frames=False)
-def lego(_, img: Image.Image) -> Image.Image:
+@pil_image(process_all_frames=False)
+def lego(_, img: Image.Image, size: int = 50) -> Image.Image:
+    img = resize_pil_prop(img, height=size, process_gif=False)
     with Image.new('RGBA', (img.width * LEGO.width, img.height * LEGO.height), 0) as bg:
         x, y = 0, 0
         for row in np.asarray(img.convert('RGBA')):
@@ -71,9 +77,10 @@ def lego(_, img: Image.Image) -> Image.Image:
             y += LEGO.height
         return bg
 
-@pil_image(height=70, process_all_frames=False)
-def minecraft(_, img: Image.Image) -> Image.Image:
+@pil_image(process_all_frames=False)
+def minecraft(_, img: Image.Image, size: int = 70) -> Image.Image:
     N = 16
+    img = resize_pil_prop(img, height=size)
     bg = Image.new('RGBA', (img.width * N, img.height * N), 0)
     x, y = 0, 0
     for row in np.asarray(img.convert('RGBA')):
@@ -131,7 +138,7 @@ def image_info(ctx: BombContext, img: Image.Image) -> tuple[discord.File, discor
         except Exception:
             continue
 
-    if palette := img.convert('P').getpalette():
+    if palette := img.quantize(colors=5, method=2).getpalette():
         palette = chunk(palette, count=3)[:5]
         palette = '  - ' + '\n  - '.join(map(lambda c: f'rgb{tuple(c)}', palette))
         embed.description += f'---\nTop-palette:\n{palette}'

@@ -124,7 +124,8 @@ class ConfirmDeletionView(AuthorOnlyView):
     async def yes_button(self, interaction: discord.Interaction, _) -> None:
         self.disable_all()
         try:
-            await self.message.delete()
+            if msg := self.message:
+                await msg.delete()
         except discord.Forbidden:
             await interaction.response.send_message('Sorry, I cannot delete messages within a DM', ephemeral=True)
         else:
