@@ -17,6 +17,7 @@ from math import ceil
 import asyncio
 import time
 
+import cv2
 import numpy as np
 import discord
 from discord.ext import commands
@@ -61,6 +62,7 @@ __all__: tuple[str, ...] = (
     'save_pil_image',
     'pil_image',
     'wand_image',
+    'to_array',
     'do_command',
 )
 
@@ -345,6 +347,29 @@ def wand_image(
 
             return await asyncio.to_thread(inner, img)
         return wrapper
+    return decorator
+
+
+def to_array(mode: int = cv2.COLOR_RGB2BGR) -> Callable[[WandFunction | PillowFunction], WandThreaded | PillowThreaded]:
+
+    def decorator(func: WandFunction | PillowFunction) -> WandFunction | PillowFunction:
+        def inner(ctx: C, image: I | I_, *args: P.args, **kwargs: P.kwargs) -> R | R_:
+            arr = np.asarray(image)
+
+            arr = cv2.cvtColor(arr, mode)
+            arr = func(ctx, arr, *args, **kwargs)
+
+            if isinstance(arr, np.ndarray):
+                arr = cv2.cvtColor(arr, mode)
+
+                if isinstance(image, WandImage):
+                    return WandImage.from_array(arr)
+                elif isinstance(image, Image.Image):
+                    return Image.fromarray(arr)
+            else:
+                return arr
+
+        return inner
     return decorator
 
 
