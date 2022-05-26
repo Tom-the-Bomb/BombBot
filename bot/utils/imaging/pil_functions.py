@@ -1,7 +1,7 @@
 from __future__ import annotations
 from io import BytesIO
 
-from typing import Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING
 import textwrap
 import pathlib
 
@@ -48,6 +48,7 @@ def _load_mc_colors() -> dict[tuple[int, int, int], Image.Image]:
 UNICODE_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(get_asset('GnuUnifontFull-Pm9P.ttf'), 25)
 CODE_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(get_asset('Monaco-Linux.ttf'), 18)
 LEGO: Image.Image = Image.open(get_asset('lego.png')).convert('RGB').resize((30, 30), Image.ANTIALIAS)
+PAINT_MASK: Image.Image = Image.open(get_asset('paint_mask.png')).convert('L').resize((20, 20), Image.ANTIALIAS)
 
 MC_COLORS = _load_mc_colors()
 MC_SAMPLE: np.ndarray = np.array(list(MC_COLORS.keys()))
@@ -64,7 +65,8 @@ def _render_palette_image(colors: list[tuple[int, ...]]) -> Image.Image:
     base = Image.new('RGBA', (width, height), 0)
     cursor = ImageDraw.Draw(base)
     for color, color_name in zip(colors, color_names):
-        cursor.ellipse((0, y, CIRC, y + CIRC), fill=tuple(color))
+        with Image.new('RGB', (CIRC, CIRC), tuple(color)) as color_img:
+            base.paste(color_img, (0, y), PAINT_MASK)
         cursor.text((TOTALSP, y - 3), color_name, font=CODE_FONT)
         y += TOTALSP
     return base
@@ -149,7 +151,7 @@ def image_info(ctx: BombContext, source: BytesIO) -> tuple[discord.Embed, discor
         for key, value in img.info.items():
             key: str
             try:
-                if isinstance(value, Sequence):
+                if isinstance(value, (list, tuple)):
                     value = ', '.join(map(
                         lambda f: f.decode(errors='ignore') if isinstance(f, bytes) else str(f), value
                     ))

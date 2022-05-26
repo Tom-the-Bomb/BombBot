@@ -42,6 +42,7 @@ __all__: tuple[str, ...] = (
     'cycle_colors',
     'huerotate',
     'spread_cards',
+    'cube',
 )
 
 WAND_CIRCLE_MASK: Image = wand_circle_mask(1000, 1000)
@@ -289,4 +290,33 @@ def spread_cards(_, img: Image) -> Image:
             clone.rotate(10)
             base.sequence.append(clone)
     del clone
+    return base
+
+@wand_image(width=286, height=250)
+def cube(_, img: Image) -> Image:
+    img.alpha_channel = 'set'
+    img.border('black', 2, 2)
+    img.shear(background='transparent', x=-30)
+
+    with img.clone() as top:
+        top.rotate(-30, reset_coords=True)
+        top.trim()
+        base = Image(
+            width=top.width, 
+            height=top.height * 2,
+            background='transparent'
+        )
+        base.composite(top, 0, 0)
+
+    with img.clone() as left:
+        left.rotate(30, reset_coords=True)
+        left.trim()
+        left.resize(left.width + 2, left.height)
+        base.composite(left, 0, 144)
+
+        left.flop()
+        left.resize(left.width - 2, left.height)
+        base.composite(left, base.width - left.width, 145)
+
+    base.format = 'png'
     return base

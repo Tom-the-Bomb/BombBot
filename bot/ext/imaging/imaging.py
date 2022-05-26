@@ -92,7 +92,7 @@ class Imaging(commands.Cog):
     @commands.command(name='charcoal')
     async def _charcoal(self, ctx: BombContext, image: Optional[ImageConverter], *, intensity: CharcoalIntensity) -> None:
         """Draws out the image using charcoal"""
-        return await do_command(ctx, image, func=paint, intensity=intensity.intensity)
+        return await do_command(ctx, image, func=charcoal, intensity=intensity.intensity)
 
     @commands.command(name='posterize', aliases=('poster',))
     async def _posterize(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
@@ -172,6 +172,11 @@ class Imaging(commands.Cog):
     async def _minecraft(self, ctx: BombContext, image: Optional[ImageConverter], *, size: McSize) -> None:
         """Builds the provided image with minecraft blocks"""
         return await do_command(ctx, image, func=minecraft, size=size.size)
+
+    @commands.command(name='cube')
+    async def cube(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
+        """Wraps the provided image on a cube"""
+        return await do_command(ctx, image, func=cube)
 
     # pil functions
 

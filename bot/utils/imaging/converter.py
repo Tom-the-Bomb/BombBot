@@ -181,6 +181,9 @@ class ImageConverter(commands.Converter):
 
     async def get_image(self, ctx: BombContext, source: Optional[str | bytes], *, max_size: int = 15_000_000) -> BytesIO:
 
+        if isinstance(source, str):
+            source = await self.convert(ctx, source, raise_on_failure=False)
+
         if source is None:
             source = await self.get_attachments(ctx)
         
