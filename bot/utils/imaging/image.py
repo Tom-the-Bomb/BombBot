@@ -67,12 +67,28 @@ __all__: tuple[str, ...] = (
 FORMATS: Final[tuple[str, ...]] = ('png', 'gif')
 
 
+def _calc_colorize(color: int, new: int) -> int:
+    if color < 33:
+        return new - 100
+    elif color > 233:
+        return new + 100
+    else:
+        return new - 133 + color
+
 def pil_colorize(img: Image.Image, color: tuple[int, int, int]) -> Image.Image:
 
-    for i, (og, new) in enumerate(zip(bands := list(img.split()), color)):
-        bands[i] = og.point(lambda c: new - 100 if c < 33 else new + 100 if c > 233 else new - 133 + c)
+    red, green, blue = img.split()
+    red = red.point(
+        lambda col: _calc_colorize(col, color[0])
+    )
+    green = green.point(
+        lambda col: _calc_colorize(col, color[1])
+    )
+    blue = blue.point(
+        lambda col: _calc_colorize(col, color[2])
+    )
 
-    return Image.merge(img.mode, bands)
+    return Image.merge(img.mode, (red, green, blue))
 
 def wand_circle_mask(width: int, height: int) -> I_:
     mask = WandImage(
@@ -267,16 +283,19 @@ def pil_image(
     duration: Duration = None,
     auto_save: bool = True,
     to_file: bool = True,
+    pass_buf: bool = False,
 ) -> Callable[[PillowFunction], PillowThreaded]:
     def decorator(func: PillowFunction) -> PillowThreaded:
 
         async def wrapper(ctx: C, img: I, *args: P.args, **kwargs: P.kwargs) -> R:
             img = await ImageConverter().get_image(ctx, img)
             
-            def inner(img: BytesIO) -> R:
-                image = Image.open(img)
-                if width or height:
-                    image = resize_pil_prop(image, width, height)
+            def inner(image: BytesIO) -> R:
+                if not pass_buf:
+                    image = Image.open(image)
+        
+                    if width or height:
+                        image = resize_pil_prop(image, width, height)
 
                 if process_all_frames and (isinstance(image, list) or getattr(image, 'is_animated', False) or image.format.lower() == 'gif'):
                     result = ImageSequence.all_frames(image, lambda frame: func(ctx, frame, *args, **kwargs))
@@ -300,18 +319,20 @@ def wand_image(
     duration: Duration = None,
     auto_save: bool = True,
     to_file: bool = True,
+    pass_buf: bool = False,
 ) -> Callable[[WandFunction], WandThreaded]:
     def decorator(func: WandFunction) -> WandThreaded:
 
         async def wrapper(ctx: C, img: I, *args: P.args, **kwargs: P.kwargs) -> R_:
             img = await ImageConverter().get_image(ctx, img)
 
-            def inner(img: BytesIO) -> R_:
-                image = WandImage(file=img)
-                image.background_color = 'none'
+            def inner(image: BytesIO) -> R_:
+                if not pass_buf:
+                    image = WandImage(file=image)
+                    image.background_color = 'none'
 
-                if width or height:
-                    image = resize_wand_prop(image, width, height)
+                    if width or height:
+                        image = resize_wand_prop(image, width, height)
 
                 if process_all_frames and (isinstance(image, list) or len(image.sequence) > 1 or image.format.lower() == 'gif'):
                     result = process_wand_gif(image, func, ctx, *args, **kwargs)

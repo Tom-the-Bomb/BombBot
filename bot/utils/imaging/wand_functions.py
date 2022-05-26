@@ -27,6 +27,9 @@ __all__: tuple[str, ...] = (
     'fuzz',
     'sketch',
     'replace_color',
+    'paint',
+    'charcoal',
+    'posterize',
     'solarize',
     'arc',
     'floor',
@@ -97,6 +100,31 @@ def sketch(_, img: I) -> I:
     img.transform_colorspace('gray')
     img.sketch(0.5, 0.0, 98.0)
     return img
+
+@wand_image()
+def paint(_, img: I, *, spread: int = 3) -> I:
+    img.oil_paint(radius=spread, sigma=3)
+    return img
+
+@wand_image()
+def charcoal(_, img: I, *, intensity: float = 1.5) -> I:
+    img.charcoal(radius=intensity, sigma=0)
+    return img
+
+@wand_image()
+def posterize(_, img: I, *, static: bool = False, layers: int = 3) -> I:
+    if static:
+        img.posterize(layers)
+        return img
+    else:
+        base = Image()
+        for i in range(3, 13):
+            with img.clone() as clone:
+                clone.posterize(i)
+                clone.delay = 10
+                base.sequence.append(clone)
+            del clone
+        return base
 
 @wand_image()
 def solarize(_, img: I, *, threshold: float = 0.5, channel: str = 'RGB') -> I:

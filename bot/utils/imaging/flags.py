@@ -9,7 +9,8 @@ __all__: tuple[str, ...] = (
     'Channels',
     'GeneralIntensity',
     'Degree',
-    'Solarize',
+    'SolarizeThreshold',
+    'CharcoalIntensity',
     'LegoSize',
     'McSize',
 )
@@ -24,8 +25,11 @@ class GeneralIntensity(FlagConverter):
 class Degree(FlagConverter):
     degree: Range[int, 0, 360] = 180
 
-class Solarize(Channels):
+class SolarizeThreshold(Channels):
     threshold: Range[float, 0.0, 1.0] = 0.5
+
+class CharcoalIntensity(Channels):
+    intensity: Range[float, 0.0, 5.0] = 1.5
 
 class LegoSize(FlagConverter):
     size: Range[int, 2, 60] = 50

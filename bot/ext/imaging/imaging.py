@@ -84,6 +84,21 @@ class Imaging(commands.Cog):
         """Sketches out the provided image"""
         return await do_command(ctx, image, func=replace_color, target=target, to=to)
 
+    @commands.command(name='paint')
+    async def _paint(self, ctx: BombContext, image: Optional[ImageConverter], *, spread: GeneralIntensity) -> None:
+        """Paints out the image using oil paint"""
+        return await do_command(ctx, image, func=paint, spread=spread.intensity)
+
+    @commands.command(name='charcoal')
+    async def _charcoal(self, ctx: BombContext, image: Optional[ImageConverter], *, intensity: CharcoalIntensity) -> None:
+        """Draws out the image using charcoal"""
+        return await do_command(ctx, image, func=paint, intensity=intensity.intensity)
+
+    @commands.command(name='posterize', aliases=('poster',))
+    async def _posterize(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+        """Posterizes the provided image"""
+        return await do_command(ctx, image, func=posterize)
+
     @commands.command(name='arc')
     async def _arc(self, ctx: BombContext, image: Optional[ImageConverter], *, degree: Degree) -> None:
         """Distorts the provided image in the shape of an arc"""
@@ -115,11 +130,13 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=turn)
 
     @commands.command(name='fisheye', aliases=('sphere',))
-    async def _fisheye(self, ctx: BombContext, image: Optional[ImageConverter], shade: Optional[Literal['--no-overlay']]) -> None:
+    async def _fisheye(self, ctx: BombContext, image: Optional[ImageConverter], shade: Optional[Literal['--no-shade']]) -> None:
         """Distorts the provided image with fisheye, basically making the image look sphere like
         Additionally a shading overlay is put on top of the image to give it a more 3D look
+
+        The optional flag: `--no-shade` can be passed to tell it to not shade the image
         """
-        return await do_command(ctx, image, func=fisheye, shade=bool(shade))
+        return await do_command(ctx, image, func=fisheye, shade=not shade)
 
     @commands.command(name='bomb')
     async def _bomb(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
@@ -137,7 +154,7 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=huerotate)
 
     @commands.command(name='solarize', aliases=('solar',))
-    async def _solarize(self, ctx: BombContext, image: Optional[ImageConverter], *, threshold: Solarize) -> None:
+    async def _solarize(self, ctx: BombContext, image: Optional[ImageConverter], *, threshold: SolarizeThreshold) -> None:
         """solarizes the provided image, resulting in a burnt effect"""
         return await do_command(ctx, image, func=solarize, threshold=threshold.threshold, channel=threshold.channel)
     
@@ -186,8 +203,8 @@ class Imaging(commands.Cog):
     @commands.command(name='image-info', aliases=('info', 'imginfo', 'img-info', 'iminfo'))
     async def _image_info(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Displays basic information about the provided image"""
-        file, embed = await image_info(ctx, image)
-        await ctx.send(embed=embed, file=file)
+        embed, *files = await image_info(ctx, image)
+        await ctx.send(embed=embed, files=files)
         
 
 async def setup(bot: BombBot) -> None:
