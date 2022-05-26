@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Optional, ClassVar
 from discord.context_managers import Typing
 
 if TYPE_CHECKING:
+    from typing_extensions import Self
     from types import TracebackType
     from discord import Message
 
@@ -13,7 +14,7 @@ __all__: tuple[str, ...] = ('Loading',)
 class Loading(Typing):
     MESSAGE: ClassVar[str] = '<a:rooHacker:977335964412305458> | Processing Image... Please wait'
 
-    async def __aenter__(self) -> None:
+    async def __aenter__(self) -> Self:
         self._message: Message = await self.messageable.send(self.MESSAGE)
         return await super().__aenter__()
 
