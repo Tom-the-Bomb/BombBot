@@ -55,14 +55,14 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=colorize, color=color)
 
     @commands.command(name='vignette')
-    async def _vignette(self, ctx: BombContext, image: Optional[ImageConverter], *, size: GeneralIntensity) -> None:
+    async def _vignette(self, ctx: BombContext, image: Optional[ImageConverter], *, intensity: GeneralIntensity) -> None:
         """Creates a vignette on the provided image of the provided size"""
-        return await do_command(ctx, image, func=vignette, size=size.intensity)
+        return await do_command(ctx, image, func=vignette, size=intensity.intensity)
 
     @commands.command(name='wave')
-    async def _wave(self, ctx: BombContext, image: Optional[ImageConverter], *, count: GeneralIntensity) -> None:
+    async def _wave(self, ctx: BombContext, image: Optional[ImageConverter], *, intensity: GeneralIntensity) -> None:
         """Makes the provided image all wavy"""
-        return await do_command(ctx, image, func=wave, count=count.intensity)
+        return await do_command(ctx, image, func=wave, count=intensity.intensity)
 
     @commands.command(name='polaroid')
     async def _polaroid(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
@@ -85,9 +85,9 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=replace_color, target=target, to=to)
 
     @commands.command(name='paint')
-    async def _paint(self, ctx: BombContext, image: Optional[ImageConverter], *, spread: GeneralIntensity) -> None:
+    async def _paint(self, ctx: BombContext, image: Optional[ImageConverter], *, intensity: GeneralIntensity) -> None:
         """Paints out the image using oil paint"""
-        return await do_command(ctx, image, func=paint, spread=spread.intensity)
+        return await do_command(ctx, image, func=paint, spread=intensity.intensity)
 
     @commands.command(name='charcoal')
     async def _charcoal(self, ctx: BombContext, image: Optional[ImageConverter], *, intensity: CharcoalIntensity) -> None:
@@ -95,9 +95,9 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=charcoal, intensity=intensity.intensity)
 
     @commands.command(name='posterize', aliases=('poster',))
-    async def _posterize(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+    async def _posterize(self, ctx: BombContext, image: Optional[ImageConverter], *, intensity: GeneralIntensity) -> None:
         """Posterizes the provided image"""
-        return await do_command(ctx, image, func=posterize)
+        return await do_command(ctx, image, func=posterize, static=True, layers=intensity.intensity)
 
     @commands.command(name='arc')
     async def _arc(self, ctx: BombContext, image: Optional[ImageConverter], *, degree: Degree) -> None:
