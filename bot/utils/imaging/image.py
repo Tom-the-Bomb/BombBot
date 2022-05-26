@@ -350,7 +350,7 @@ def wand_image(
     return decorator
 
 
-def to_array(mode: int = cv2.COLOR_RGB2BGR) -> Callable[[WandFunction | PillowFunction], WandThreaded | PillowThreaded]:
+def to_array(mode: int = cv2.COLOR_RGB2BGR) -> Callable[[WandFunction | PillowFunction], WandFunction | PillowFunction]:
 
     def decorator(func: WandFunction | PillowFunction) -> WandFunction | PillowFunction:
         def inner(ctx: C, image: I | I_, *args: P.args, **kwargs: P.kwargs) -> R | R_:
