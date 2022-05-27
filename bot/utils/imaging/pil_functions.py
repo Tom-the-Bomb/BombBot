@@ -45,13 +45,34 @@ def _load_mc_colors() -> dict[tuple[int, int, int], Image.Image]:
         colors[single.getpixel((0, 0))] = block.resize((16, 16))
     return colors
 
-UNICODE_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(get_asset('GnuUnifontFull-Pm9P.ttf'), 25)
-CODE_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(get_asset('Monaco-Linux.ttf'), 18)
-LEGO: Image.Image = Image.open(get_asset('lego.png')).convert('RGB').resize((30, 30), Image.ANTIALIAS)
-PAINT_MASK: Image.Image = Image.open(get_asset('paint_mask.png')).convert('L').resize((20, 20), Image.ANTIALIAS)
+# global image "cache"
+UNICODE_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(
+    font=get_asset('GnuUnifontFull-Pm9P.ttf'), 
+    size=25,
+)
+CODE_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(
+    font=get_asset('Monaco-Linux.ttf'), 
+    size=18,
+)
+LEGO: Image.Image = (
+    Image.open(
+        get_asset('lego.png')
+    )
+    .convert('RGB')
+    .resize((30, 30), Image.ANTIALIAS)
+)
+PAINT_MASK: Image.Image = (
+    Image.open(
+        get_asset('paint_mask.png')
+    )
+    .convert('L')
+    .resize((20, 20), Image.ANTIALIAS)
+)
 
 MC_COLORS = _load_mc_colors()
-MC_SAMPLE: np.ndarray = np.array(list(MC_COLORS.keys()))
+MC_SAMPLE: np.ndarray = np.array(
+    list(MC_COLORS.keys())
+)
 
 def _render_palette_image(colors: list[tuple[int, ...]]) -> Image.Image:
     CIRC, SPACE = 20, 5
