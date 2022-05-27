@@ -350,10 +350,17 @@ def wand_image(
     return decorator
 
 
-def to_array(mode: int = cv2.COLOR_RGB2BGR) -> Callable[[WandFunction | PillowFunction], WandFunction | PillowFunction]:
+def to_array(*, img_mode: str = 'RGB', mode: int = cv2.COLOR_RGB2BGR) -> Callable[[WandFunction | PillowFunction], WandFunction | PillowFunction]:
 
     def decorator(func: WandFunction | PillowFunction) -> WandFunction | PillowFunction:
         def inner(ctx: C, image: I | I_, *args: P.args, **kwargs: P.kwargs) -> R | R_:
+
+            if isinstance(image, Image.Image):
+                if image.mode != img_mode.upper():
+                    image = image.convert(img_mode.upper())
+            elif isinstance(image, WandImage):
+                image.transform_colorspace(img_mode.lower())
+
             arr = np.asarray(image)
 
             arr = cv2.cvtColor(arr, mode)
