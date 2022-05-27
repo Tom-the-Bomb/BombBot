@@ -366,9 +366,8 @@ def to_array(mode: int = cv2.COLOR_RGB2BGR) -> Callable[[WandFunction | PillowFu
                     return WandImage.from_array(arr)
                 elif isinstance(image, Image.Image):
                     return Image.fromarray(arr)
-            else:
-                return arr
-
+            return arr
+            
         return inner
     return decorator
 
