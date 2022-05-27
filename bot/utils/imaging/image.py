@@ -21,7 +21,12 @@ import cv2
 import numpy as np
 import discord
 from discord.ext import commands
-from PIL import Image, ImageSequence
+from PIL import (
+    Image,
+    ImageOps,
+    ImageDraw,
+    ImageSequence,
+)
 from wand.drawing import Drawing
 from wand.image import Image as WandImage
 
@@ -53,7 +58,9 @@ if TYPE_CHECKING:
 __all__: tuple[str, ...] = (
     'pil_colorize',
     'wand_circle_mask',
+    'pil_circle_mask',
     'wand_circular',
+    'pil_circular',
     'resize_pil_prop',
     'resize_wand_prop',
     'process_wand_gif',
@@ -92,7 +99,7 @@ def pil_colorize(img: Image.Image, color: tuple[int, int, int]) -> Image.Image:
 
     return Image.merge(img.mode, (red, green, blue))
 
-def wand_circle_mask(width: int, height: int) -> I_:
+def wand_circle_mask(width: int, height: int) -> WandImage:
     mask = WandImage(
         width=width, height=height, 
         background='transparent', colorspace='gray'
@@ -109,7 +116,16 @@ def wand_circle_mask(width: int, height: int) -> I_:
         draw(mask)
     return mask
 
+def pil_circle_mask(width: int, height: int) -> Image.Image:
+    mask = Image.new('L', (width, height), 0)
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse((0, 0, width, height), fill=255)
+    return mask
+
 def wand_circular(img: I_, *, mask: Optional[WandImage] = None) -> I_:
+
+    if not mask:
+        mask = wand_circle_mask(img.width, img.height)
 
     if mask.size != img.size:
         mask = mask.clone()
@@ -118,6 +134,17 @@ def wand_circular(img: I_, *, mask: Optional[WandImage] = None) -> I_:
     img.composite(mask, left=0, top=0, operator='copy_alpha')
     return img
 
+def pil_circular(img: Image.Image, *, mask: Optional[Image.Image] = None) -> Image.Image:
+
+    if not mask:
+        mask = pil_circle_mask(img.width, img.height)
+
+    if mask.size != img.size:
+        mask = mask.resize(img.size, Image.ANTIALIAS)
+
+    out = ImageOps.fit(img, mask.size, centering=(0.5, 0.5))
+    out.putalpha(mask)
+    return out
 
 def _get_prop_size(
     image: Image.Image | WandImage,

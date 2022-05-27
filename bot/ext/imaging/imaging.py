@@ -196,6 +196,11 @@ class Imaging(commands.Cog):
         """returns only the outline & contour of the provided image"""
         return await do_command(ctx, image, func=contour)
 
+    @commands.command(name='spin')
+    async def _spin(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
+        """returns only the outline & contour of the provided image"""
+        return await do_command(ctx, image, func=spin)
+
     @commands.command(name='type', aliases=('write',))
     async def _type(self, ctx: BombContext, *, text: str = None) -> None:
         """Types out the provided text in an animation"""

@@ -20,7 +20,9 @@ from ..helpers import to_thread, chunk, get_asset
 from .image import (
     resize_pil_prop, 
     pil_colorize, 
-    pil_image, 
+    pil_image,
+    pil_circle_mask,
+    pil_circular,
     save_pil_image,
 )
 
@@ -31,6 +33,7 @@ __all__: tuple[str, ...] = (
     'flip',
     'mirror',
     'contour',
+    'spin',
     'lego',
     'minecraft',
     'type_gif',
@@ -68,6 +71,7 @@ PAINT_MASK: Image.Image = (
     .convert('L')
     .resize((20, 20), Image.ANTIALIAS)
 )
+PIL_CIRCLE_MASK: Image.Image = pil_circle_mask(1000, 1000)
 
 MC_COLORS = _load_mc_colors()
 MC_SAMPLE: np.ndarray = np.array(
@@ -103,6 +107,18 @@ def mirror(_, img: Image.Image) -> Image.Image:
 @pil_image()
 def contour(_, img: Image.Image) -> Image.Image:
     return img.filter(ImageFilter.CONTOUR)
+
+@pil_image(process_all_frames=False)
+def spin(_, img: Image.Image) -> list[Image.Image]:
+    img = img.convert('RGBA')
+    frames = []
+    for i in range(0, 360, 6):
+        img = img.rotate(i)
+        img = pil_circular(img, mask=PIL_CIRCLE_MASK)
+        frames.append(img)
+        
+    frames += reversed(frames)
+    return frames
 
 @pil_image(process_all_frames=False)
 def lego(_, img: Image.Image, size: int = 50) -> Image.Image:
