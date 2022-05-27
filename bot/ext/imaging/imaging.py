@@ -8,6 +8,7 @@ from bot.utils.imaging import do_command, ImageConverter, ColorConverter
 from bot.utils.imaging.flags import *
 from bot.utils.imaging.pil_functions import *
 from bot.utils.imaging.wand_functions import *
+from bot.utils.imaging.cv_functions import *
 
 if TYPE_CHECKING:
     from bot.bot import BombBot
@@ -210,14 +211,28 @@ class Imaging(commands.Cog):
         """Displays basic information about the provided image"""
         embed, *files = await image_info(ctx, image)
         await ctx.send(embed=embed, files=files)
+
+    # opencv-python functions
+
+    @commands.command(name='canny', aliases=('edgedetect', 'edge-detect', 'edges'))
+    async def _canny(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+        """Runs a canny algorithm on an image; edge-detection"""
+        return await do_command(ctx, image, func=canny)
+
+    @commands.command(name='cartoon')
+    async def _cartoon(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+        """Cartoonifies an image"""
+        return await do_command(ctx, image, func=cartoon)
         
 
 async def setup(bot: BombBot) -> None:
     from importlib import reload
     from bot.utils.imaging import pil_functions
     from bot.utils.imaging import wand_functions
+    from bot.utils.imaging import cv_functions
 
     reload(pil_functions)
     reload(wand_functions)
+    reload(cv_functions)
     
     await bot.add_cog(Imaging(bot))

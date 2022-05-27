@@ -9,3 +9,4 @@ wand
 psutil
 bs4
 lxml
+opencv-python
