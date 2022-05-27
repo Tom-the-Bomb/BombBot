@@ -111,10 +111,11 @@ def contour(_, img: Image.Image) -> Image.Image:
 @pil_image(process_all_frames=False)
 def spin(_, img: Image.Image) -> list[Image.Image]:
     img = img.convert('RGBA')
+    img = pil_circular(img, mask=PIL_CIRCLE_MASK)
+
     frames = []
-    for i in range(0, 360, 6):
-        img = img.rotate(i)
-        img = pil_circular(img, mask=PIL_CIRCLE_MASK)
+    for i in range(0, 360, 8):
+        img = img.rotate(i, resample=Image.BICUBIC)
         frames.append(img)
         
     frames += reversed(frames)
