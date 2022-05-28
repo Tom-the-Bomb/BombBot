@@ -402,7 +402,9 @@ def _convert_from_arr(
         arr = cv2.cvtColor(arr, arr_mode)
 
         if isinstance(og_image, WandImage):
-            arr = WandImage.from_array(arr)
+            arr: WandImage = WandImage.from_array(arr)
+            if arr.format == 'MIFF':
+                arr.format = 'png'
         elif isinstance(og_image, Image.Image):
             arr = Image.fromarray(arr)
     return arr
