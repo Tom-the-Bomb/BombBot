@@ -407,7 +407,7 @@ def _convert_from_arr(
             arr = Image.fromarray(arr)
     return arr
 
-def to_array(img_mode: str = 'RGBA', arr_mode: int = cv2.COLOR_RGBA2BGRA) -> Callable[[WandFunction | PillowFunction], WandFunction | PillowFunction]:
+def to_array(img_mode: str = 'RGB', arr_mode: int = cv2.COLOR_RGB2BGR) -> Callable[[WandFunction | PillowFunction], WandFunction | PillowFunction]:
 
     def decorator(func: WandFunction | PillowFunction) -> WandFunction | PillowFunction:
         def inner(ctx: C, image: I | I_ | list[I | I_], *args: P.args, **kwargs: P.kwargs) -> R | R_:

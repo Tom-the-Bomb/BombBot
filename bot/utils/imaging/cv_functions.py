@@ -18,7 +18,7 @@ __all__: tuple[str, ...] = (
 )
 
 @pil_image()
-@to_array('RGB', cv2.COLOR_RGB2BGR)
+@to_array()
 def cartoon(_, img: np.ndarray) -> np.ndarray:
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     gray = cv2.medianBlur(gray, 5)
@@ -28,7 +28,7 @@ def cartoon(_, img: np.ndarray) -> np.ndarray:
     return cartoon
 
 @pil_image()
-@to_array()
+@to_array('RGBA', cv2.COLOR_RGBA2BGRA)
 def colordetect(_, img: np.ndarray, *, color: Color, fuzz: int = 15) -> np.ndarray:
     color = [int(val * 255) for val in (color.red, color.green, color.blue)]
     hsv_color = cv2.cvtColor(np.uint8([[color]]), cv2.COLOR_RGB2HSV)
@@ -42,13 +42,13 @@ def colordetect(_, img: np.ndarray, *, color: Color, fuzz: int = 15) -> np.ndarr
     return output
 
 @pil_image()
-@to_array()
+@to_array('RGBA', cv2.COLOR_RGBA2BGRA)
 def dilate(_, img: np.ndarray) -> list[np.ndarray]:
     frames = [cv2.dilate(img, np.ones((i, i), np.uint8)) for i in range(1, 50, 2)]
     frames += reversed(frames)
     return frames
 
 @pil_image()
-@to_array()
+@to_array('RGBA', cv2.COLOR_RGBA2BGRA)
 def canny(_, img: np.ndarray) -> np.ndarray:
     return cv2.Canny(img, 100, 200)
