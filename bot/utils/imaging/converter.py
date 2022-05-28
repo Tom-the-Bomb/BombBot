@@ -176,6 +176,8 @@ class ImageConverter(commands.Converter):
         else:
             if raise_on_failure:
                 raise commands.BadArgument('Failed to fetch an image from argument')
+            else:
+                return None
 
         return await self.converted_to_buffer(source)
 
