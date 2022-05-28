@@ -326,7 +326,7 @@ def pil_image(
                     if width or height:
                         image = resize_pil_prop(image, width, height)
 
-                if process_all_frames and (isinstance(image, list) or getattr(image, 'is_animated', False) or image.format.lower() == 'gif'):
+                if process_all_frames and (isinstance(image, list) or getattr(image, 'is_animated', False) or str(image.format).lower() == 'gif'):
                     result = ImageSequence.all_frames(image, lambda frame: func(ctx, frame, *args, **kwargs))
                 else:
                     result = func(ctx, image, *args, **kwargs)
@@ -363,7 +363,7 @@ def wand_image(
                     if width or height:
                         image = resize_wand_prop(image, width, height)
 
-                if process_all_frames and (isinstance(image, list) or len(image.sequence) > 1 or image.format.lower() == 'gif'):
+                if process_all_frames and (isinstance(image, list) or len(image.sequence) > 1 or str(image.format).lower() == 'gif'):
                     result = process_wand_gif(image, func, ctx, *args, **kwargs)
                 else:
                     result = func(ctx, image, *args, **kwargs)
@@ -377,29 +377,52 @@ def wand_image(
     return decorator
 
 
-def to_array(*, img_mode: str = 'RGB', mode: int = cv2.COLOR_RGB2BGR) -> Callable[[WandFunction | PillowFunction], WandFunction | PillowFunction]:
+def _convert_to_arr(
+    image: Image.Image | WandImage, 
+    img_mode: str, 
+    arr_mode: int,
+) -> np.ndarray:
+
+    if image.mode != img_mode.upper():
+        if isinstance(image, Image.Image):
+            image = image.convert(img_mode.upper())
+        elif isinstance(image, WandImage):
+            image.transform_colorspace(img_mode.lower())
+
+    arr = np.asarray(image)
+    return cv2.cvtColor(arr, arr_mode)
+
+def _convert_from_arr(
+    arr: np.ndarray | Any, 
+    og_image: Image.Image | WandImage, 
+    arr_mode: int,
+) -> Image | WandImage | Any:
+
+    if isinstance(arr, np.ndarray):
+        arr = cv2.cvtColor(arr, arr_mode)
+
+        if isinstance(og_image, WandImage):
+            arr = WandImage.from_array(arr)
+        elif isinstance(og_image, Image.Image):
+            arr = Image.fromarray(arr)
+    return arr
+
+def to_array(img_mode: str = 'RGBA', arr_mode: int = cv2.COLOR_RGBA2BGRA) -> Callable[[WandFunction | PillowFunction], WandFunction | PillowFunction]:
 
     def decorator(func: WandFunction | PillowFunction) -> WandFunction | PillowFunction:
-        def inner(ctx: C, image: I | I_, *args: P.args, **kwargs: P.kwargs) -> R | R_:
+        def inner(ctx: C, image: I | I_ | list[I | I_], *args: P.args, **kwargs: P.kwargs) -> R | R_:
 
-            if isinstance(image, Image.Image):
-                if image.mode != img_mode.upper():
-                    image = image.convert(img_mode.upper())
-            elif isinstance(image, WandImage):
-                image.transform_colorspace(img_mode.lower())
+            if isinstance(image, list):
+                arr = [_convert_to_arr(frame, img_mode, arr_mode) for frame in image]
+            else:
+                arr = _convert_to_arr(image, img_mode, arr_mode)
 
-            arr = np.asarray(image)
-
-            arr = cv2.cvtColor(arr, mode)
             arr = func(ctx, arr, *args, **kwargs)
 
-            if isinstance(arr, np.ndarray):
-                arr = cv2.cvtColor(arr, mode)
-
-                if isinstance(image, WandImage):
-                    return WandImage.from_array(arr)
-                elif isinstance(image, Image.Image):
-                    return Image.fromarray(arr)
+            if isinstance(arr, list):
+                arr = [_convert_from_arr(frame, image, arr_mode) for frame in arr]
+            else:
+                arr = _convert_from_arr(arr, image, arr_mode)
             return arr
             
         return inner

@@ -11,7 +11,7 @@ from discord.ext import commands
 from aiohttp import MultipartWriter, ClientSession
 
 from .utils.context import BombContext
-from .utils.imaging.converter import ImageTooLarge
+from .utils.imaging.converter import ImageTooLarge, InvalidColor
 
 class Config(TypedDict):
     TOKEN: str
@@ -168,7 +168,7 @@ class BombBot(commands.Bot):
         if ctx.command:
             ctx.command.reset_cooldown(ctx)
 
-        if isinstance(error, ImageTooLarge):
+        if isinstance(error, (ImageTooLarge, InvalidColor)):
             return await ctx.send(error.args[0])
 
         elif isinstance(error, commands.BadLiteralArgument):

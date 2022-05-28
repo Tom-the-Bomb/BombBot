@@ -37,7 +37,7 @@ class ColorConverter(commands.Converter):
         try:
             return Color(argument.strip())
         except ValueError as exc:
-            raise InvalidColor(f'{argument} is an invalid color') from exc
+            raise InvalidColor(f'`{argument}` is not a valid color') from exc
 
 class DefaultEmojiConverter(commands.Converter):
 

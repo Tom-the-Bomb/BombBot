@@ -159,7 +159,7 @@ class Imaging(commands.Cog):
         """solarizes the provided image, resulting in a burnt effect"""
         return await do_command(ctx, image, func=solarize, threshold=threshold.threshold, channel=threshold.channel)
     
-    @commands.command(name='spread-cards', aliases=('cards', 'spread'))
+    @commands.command(name='spread-cards', aliases=('cards', 'spread', 'spreadcards'))
     async def _spread_cards(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
         """Spreads the provided image out like playing cards"""
         return await do_command(ctx, image, func=spread_cards)
@@ -223,6 +223,16 @@ class Imaging(commands.Cog):
     async def _canny(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Runs a canny algorithm on an image; edge-detection"""
         return await do_command(ctx, image, func=canny)
+
+    @commands.command(name='colordetect', aliases=('color-detect', 'cd'))
+    async def _colordetect(self, ctx: BombContext, image: Optional[ImageConverter], *, color: ColorConverter) -> None:
+        """Detects a certain color within the image"""
+        return await do_command(ctx, image, func=colordetect, color=color)
+    
+    @commands.command(name='dilate', aliases=('fatten', 'blowup', 'blow'))
+    async def _dilate(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+        """Dilates an image outwards"""
+        return await do_command(ctx, image, func=dilate)
 
     @commands.command(name='cartoon')
     async def _cartoon(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
