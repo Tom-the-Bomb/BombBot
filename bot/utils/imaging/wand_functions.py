@@ -95,7 +95,7 @@ def fuzz(_, img: I, *, intensity: int = 8) -> I:
 
 @wand_image()
 def replace_color(_, img: I, *, target: Color, to: Color) -> I:
-    img.opaque_paint(target, to, fuzz=0.2 * img.quantum_range)
+    img.opaque_paint(target, to, fuzz=0.3 * img.quantum_range)
     return img
 
 @wand_image()
