@@ -29,6 +29,8 @@ __all__: tuple[str, ...] = (
     'replace_color',
     'paint',
     'charcoal',
+    'threshold',
+    'noise',
     'posterize',
     'solarize',
     'arc',
@@ -110,6 +112,17 @@ def paint(_, img: I, *, spread: int = 3) -> I:
 @wand_image()
 def charcoal(_, img: I, *, intensity: float = 1.5) -> I:
     img.charcoal(radius=intensity, sigma=0)
+    return img
+
+@wand_image()
+def threshold(_, img: I, *, threshold: float = 0.5, channel: str = 'RGB') -> I:
+    img.transform_colorspace('gray')
+    img.threshold(threshold, channel=channel)
+    return img
+
+@wand_image()
+def noise(_, img: I, *, amount: float = 2) -> I:
+    img.noise('laplacian', attenuate=amount)
     return img
 
 @wand_image()

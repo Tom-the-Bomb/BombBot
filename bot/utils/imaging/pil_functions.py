@@ -18,7 +18,8 @@ from PIL import (
 
 from ..helpers import to_thread, chunk, get_asset
 from .image import (
-    resize_pil_prop, 
+    resize_pil_prop,
+    get_closest_color,
     pil_colorize, 
     pil_image,
     pil_circle_mask,
@@ -145,9 +146,8 @@ def minecraft(_, img: Image.Image, size: int = 70) -> Image.Image:
     for row in np.asarray(img.convert('RGBA')):
         for px in row:
             if px[-1] != 0:
-                distances = np.sqrt(np.sum((MC_SAMPLE - px[:-1]) ** 2, axis=1))
-                idx = np.where(distances == np.amin(distances))
-                file = MC_COLORS[tuple(MC_SAMPLE[idx][0])]
+                color = get_closest_color(px[:-1], MC_SAMPLE)
+                file = MC_COLORS[color]
                 bg.paste(file, (x, y))
             x += N
         x = 0

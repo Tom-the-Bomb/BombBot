@@ -5,14 +5,18 @@ from typing import Literal
 
 from discord.ext.commands import FlagConverter, Range
 
+from .converter import ColorConverter
+
 __all__: tuple[str, ...] = (
     'Channels',
     'GeneralIntensity',
     'Degree',
-    'SolarizeThreshold',
+    'Threshold',
     'CharcoalIntensity',
     'LegoSize',
     'McSize',
+    'ColorFlag',
+    'ReplaceColors',
 )
 
 
@@ -25,7 +29,7 @@ class GeneralIntensity(FlagConverter):
 class Degree(FlagConverter):
     degree: Range[int, 0, 360] = 180
 
-class SolarizeThreshold(Channels):
+class Threshold(Channels):
     threshold: Range[float, 0.0, 1.0] = 0.5
 
 class CharcoalIntensity(Channels):
@@ -36,3 +40,10 @@ class LegoSize(FlagConverter):
 
 class McSize(FlagConverter):
     size: Range[int, 2, 60] = 70
+
+class ColorFlag(FlagConverter):
+    color: ColorConverter
+
+class ReplaceColors(FlagConverter):
+    target: ColorConverter
+    to: ColorConverter

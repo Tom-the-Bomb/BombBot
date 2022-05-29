@@ -4,7 +4,8 @@ from typing import TYPE_CHECKING, Optional, Literal
 
 from discord.ext import commands
 
-from bot.utils.imaging import do_command, ImageConverter, ColorConverter
+from bot.utils.imaging import do_command, ImageConverter
+
 from bot.utils.imaging.flags import *
 from bot.utils.imaging.pil_functions import *
 from bot.utils.imaging.wand_functions import *
@@ -36,9 +37,9 @@ class Imaging(commands.Cog):
 
     # wand functions
     @commands.command(name='blur')
-    async def _blur(self, ctx: BombContext, image: Optional[ImageConverter], *, intensity: GeneralIntensity) -> None:
+    async def _blur(self, ctx: BombContext, image: Optional[ImageConverter], *, options: GeneralIntensity) -> None:
         """Blurs the provided image"""
-        return await do_command(ctx, image, func=blur, intensity=intensity.intensity)
+        return await do_command(ctx, image, func=blur, intensity=options.intensity)
 
     @commands.command(name='emboss')
     async def _emboss(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
@@ -46,24 +47,24 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=emboss)
 
     @commands.command(name='invert')
-    async def _invert(self, ctx: BombContext, image: Optional[ImageConverter], *, channel: Channels) -> None:
+    async def _invert(self, ctx: BombContext, image: Optional[ImageConverter], *, options: Channels) -> None:
         """Inverts the provided image"""
-        return await do_command(ctx, image, func=invert, channel=channel.channel)
+        return await do_command(ctx, image, func=invert, channel=options.channel)
 
     @commands.command(name='colorize', aliases=('recolor', 'tint'))
-    async def _colorize(self, ctx: BombContext, image: Optional[ImageConverter], *, color: ColorConverter) -> None:
+    async def _colorize(self, ctx: BombContext, image: Optional[ImageConverter], *, options: ColorFlag) -> None:
         """Colorizes an image to the provided color"""
-        return await do_command(ctx, image, func=colorize, color=color)
+        return await do_command(ctx, image, func=colorize, color=options.color)
 
     @commands.command(name='vignette')
-    async def _vignette(self, ctx: BombContext, image: Optional[ImageConverter], *, intensity: GeneralIntensity) -> None:
+    async def _vignette(self, ctx: BombContext, image: Optional[ImageConverter], *, options: GeneralIntensity) -> None:
         """Creates a vignette on the provided image of the provided size"""
-        return await do_command(ctx, image, func=vignette, size=intensity.intensity)
+        return await do_command(ctx, image, func=vignette, size=options.intensity)
 
     @commands.command(name='wave')
-    async def _wave(self, ctx: BombContext, image: Optional[ImageConverter], *, intensity: GeneralIntensity) -> None:
+    async def _wave(self, ctx: BombContext, image: Optional[ImageConverter], *, options: GeneralIntensity) -> None:
         """Makes the provided image all wavy"""
-        return await do_command(ctx, image, func=wave, count=intensity.intensity)
+        return await do_command(ctx, image, func=wave, count=options.intensity)
 
     @commands.command(name='polaroid')
     async def _polaroid(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
@@ -71,9 +72,9 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=polaroid)
 
     @commands.command(name='fuzz')
-    async def _fuzz(self, ctx: BombContext, image: Optional[ImageConverter], *, intensity: GeneralIntensity) -> None:
+    async def _fuzz(self, ctx: BombContext, image: Optional[ImageConverter], *, options: GeneralIntensity) -> None:
         """Makes the provided image all fuzzy"""
-        return await do_command(ctx, image, func=fuzz, intensity=intensity.intensity)
+        return await do_command(ctx, image, func=fuzz, intensity=options.intensity)
 
     @commands.command(name='sketch')
     async def _sketch(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
@@ -81,29 +82,39 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=sketch)
 
     @commands.command(name='replace-color', aliases=('replacecolor', 'replace'))
-    async def _replace_color(self, ctx: BombContext, image: Optional[ImageConverter], target: ColorConverter, *, to: ColorConverter) -> None:
+    async def _replace_color(self, ctx: BombContext, image: Optional[ImageConverter], *, options: ReplaceColors) -> None:
         """Sketches out the provided image"""
-        return await do_command(ctx, image, func=replace_color, target=target, to=to)
+        return await do_command(ctx, image, func=replace_color, target=options.target, to=options.to)
 
     @commands.command(name='paint')
-    async def _paint(self, ctx: BombContext, image: Optional[ImageConverter], *, intensity: GeneralIntensity) -> None:
+    async def _paint(self, ctx: BombContext, image: Optional[ImageConverter], *, options: GeneralIntensity) -> None:
         """Paints out the image using oil paint"""
-        return await do_command(ctx, image, func=paint, spread=intensity.intensity)
+        return await do_command(ctx, image, func=paint, spread=options.intensity)
 
     @commands.command(name='charcoal')
-    async def _charcoal(self, ctx: BombContext, image: Optional[ImageConverter], *, intensity: CharcoalIntensity) -> None:
+    async def _charcoal(self, ctx: BombContext, image: Optional[ImageConverter], *, options: CharcoalIntensity) -> None:
         """Draws out the image using charcoal"""
-        return await do_command(ctx, image, func=charcoal, intensity=intensity.intensity)
+        return await do_command(ctx, image, func=charcoal, intensity=options.intensity)
+
+    @commands.command(name='threshold')
+    async def _threshold(self, ctx: BombContext, image: Optional[ImageConverter], *, options: Threshold) -> None:
+        """Thresholds the image"""
+        return await do_command(ctx, image, func=threshold, threshold=options.threshold, channel=options.channel)
+
+    @commands.command(name='noise')
+    async def _noise(self, ctx: BombContext, image: Optional[ImageConverter], *, options: GeneralIntensity) -> None:
+        """Adds noise onto an image"""
+        return await do_command(ctx, image, func=noise, amount=options.intensity)
 
     @commands.command(name='posterize', aliases=('poster',))
-    async def _posterize(self, ctx: BombContext, image: Optional[ImageConverter], *, intensity: GeneralIntensity) -> None:
+    async def _posterize(self, ctx: BombContext, image: Optional[ImageConverter], *, options: GeneralIntensity) -> None:
         """Posterizes the provided image"""
-        return await do_command(ctx, image, func=posterize, static=True, layers=intensity.intensity)
+        return await do_command(ctx, image, func=posterize, static=True, layers=options.intensity)
 
     @commands.command(name='arc')
-    async def _arc(self, ctx: BombContext, image: Optional[ImageConverter], *, degree: Degree) -> None:
+    async def _arc(self, ctx: BombContext, image: Optional[ImageConverter], *, options: Degree) -> None:
         """Distorts the provided image in the shape of an arc"""
-        return await do_command(ctx, image, func=arc, degree=degree.degree)
+        return await do_command(ctx, image, func=arc, degree=options.degree)
 
     @commands.command(name='floor')
     async def _floor(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
@@ -155,9 +166,9 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=huerotate)
 
     @commands.command(name='solarize', aliases=('solar',))
-    async def _solarize(self, ctx: BombContext, image: Optional[ImageConverter], *, threshold: SolarizeThreshold) -> None:
+    async def _solarize(self, ctx: BombContext, image: Optional[ImageConverter], *, options: Threshold) -> None:
         """solarizes the provided image, resulting in a burnt effect"""
-        return await do_command(ctx, image, func=solarize, threshold=threshold.threshold, channel=threshold.channel)
+        return await do_command(ctx, image, func=solarize, threshold=options.threshold, channel=options.channel)
     
     @commands.command(name='spread-cards', aliases=('cards', 'spread', 'spreadcards'))
     async def _spread_cards(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
@@ -165,14 +176,14 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=spread_cards)
 
     @commands.command(name='lego')
-    async def _lego(self, ctx: BombContext, image: Optional[ImageConverter], *, size: LegoSize) -> None:
+    async def _lego(self, ctx: BombContext, image: Optional[ImageConverter], *, options: LegoSize) -> None:
         """Builds the provided image with lego pieces"""
-        return await do_command(ctx, image, func=lego, size=size.size)
+        return await do_command(ctx, image, func=lego, size=options.size)
 
     @commands.command(name='minecraft', aliases=('mc',))
-    async def _minecraft(self, ctx: BombContext, image: Optional[ImageConverter], *, size: McSize) -> None:
+    async def _minecraft(self, ctx: BombContext, image: Optional[ImageConverter], *, options: McSize) -> None:
         """Builds the provided image with minecraft blocks"""
-        return await do_command(ctx, image, func=minecraft, size=size.size)
+        return await do_command(ctx, image, func=minecraft, size=options.size)
 
     @commands.command(name='cube')
     async def cube(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
@@ -202,7 +213,7 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=spin)
 
     @commands.command(name='type', aliases=('write',))
-    async def _type(self, ctx: BombContext, *, text: str = None) -> None:
+    async def _type(self, ctx: BombContext, *, options: str = None) -> None:
         """Types out the provided text in an animation"""
         if not text:
             if ref := ctx.message.reference:
@@ -225,9 +236,14 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=canny)
 
     @commands.command(name='colordetect', aliases=('color-detect', 'cd'))
-    async def _colordetect(self, ctx: BombContext, image: Optional[ImageConverter], *, color: ColorConverter) -> None:
+    async def _colordetect(self, ctx: BombContext, image: Optional[ImageConverter], *, options: ColorFlag) -> None:
         """Detects a certain color within the image"""
-        return await do_command(ctx, image, func=colordetect, color=color)
+        return await do_command(ctx, image, func=colordetect, color=options.color)
+
+    @commands.command(name='cornerdetect', aliases=('corner-detect', 'corners'))
+    async def _cornerdetect(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+        """Detects corners within the image"""
+        return await do_command(ctx, image, func=cornerdetect)
     
     @commands.command(name='dilate', aliases=('fatten', 'blowup', 'blow'))
     async def _dilate(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:

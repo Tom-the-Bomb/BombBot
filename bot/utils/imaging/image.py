@@ -56,6 +56,7 @@ if TYPE_CHECKING:
     Duration: TypeAlias = list[int] | int | None
 
 __all__: tuple[str, ...] = (
+    'get_closest_color',
     'pil_colorize',
     'wand_circle_mask',
     'pil_circle_mask',
@@ -74,6 +75,19 @@ __all__: tuple[str, ...] = (
 )
 
 FORMATS: Final[tuple[str, ...]] = ('png', 'gif')
+
+
+def get_closest_color(px: tuple[int, ...], sample: list | np.ndarray, *, reverse: bool = False) -> tuple[int, ...]:
+
+    if not isinstance(sample, np.ndarray):
+        sample = np.array(sample)
+        
+    distances = np.sqrt(
+        np.sum((sample - px) ** 2, axis=1)
+    )
+    fn = (np.amin, np.amax)[reverse]
+    idx = np.where(distances == fn(distances))
+    return tuple(sample[idx][0])
 
 
 def _calc_colorize(color: int, new: int) -> int:
