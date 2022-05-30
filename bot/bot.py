@@ -4,6 +4,7 @@ import json
 import logging
 import traceback
 from math import ceil
+from inspect import getdoc
 
 import jishaku
 import discord
@@ -18,6 +19,8 @@ class Config(TypedDict):
     PREFIXES: list[str]
 
 class BombBot(commands.Bot):
+    """A multipurpose discord bot featuring numerous games and image processing command among many others
+    """
     EMBED_COLOR: Final[int] = 0x2F3136
 
     def __init__(self, **options: Any) -> None:
@@ -33,8 +36,8 @@ class BombBot(commands.Bot):
         intents = discord.Intents.all()
         
         super().__init__(
-            command_prefix=commands.when_mentioned_or(*self.default_prefixes), 
-            description='BombBot rewrite',
+            command_prefix=commands.when_mentioned_or(*self.default_prefixes),
+            description=getdoc(self),
             intents=intents,
             case_insensitive=True, 
             status=discord.Status.idle,

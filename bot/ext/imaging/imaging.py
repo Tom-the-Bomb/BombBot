@@ -16,7 +16,8 @@ if TYPE_CHECKING:
     from bot.utils.context import BombContext
 
 class Imaging(commands.Cog):
-    """Cog containing image manipulation commands utilizing `wand` & `pillow`
+    """Contains numerous image processing commands
+    utilizing `ImageMagick`, `pillow` and `OpenCV`
     """
     def __init__(self, bot: BombBot) -> None:
         self.bot = bot
@@ -83,7 +84,9 @@ class Imaging(commands.Cog):
 
     @commands.command(name='replace-color', aliases=('replacecolor', 'replace'))
     async def _replace_color(self, ctx: BombContext, image: Optional[ImageConverter], *, options: ReplaceColors) -> None:
-        """Sketches out the provided image"""
+        """Replaces the all instances of the color `target` 
+        or any color similar by 20% with the color: `to`
+        """
         return await do_command(ctx, image, func=replace_color, target=options.target, to=options.to)
 
     @commands.command(name='paint')

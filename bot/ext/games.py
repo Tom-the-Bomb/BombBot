@@ -11,7 +11,8 @@ from ..bot import BombBot
 
 
 class Games(commands.Cog):
-
+    """Several classic games"""
+    
     def __init__(self, bot: BombBot) -> None:
         self.bot = bot
         self.twenty_48_emojis: dict[str, str] = {

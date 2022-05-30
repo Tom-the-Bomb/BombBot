@@ -17,7 +17,8 @@ if TYPE_CHECKING:
     from ..bot import BombBot
 
 class Owner(commands.Cog):
-
+    """Owner only utility commands"""
+    
     def __init__(self, bot: BombBot) -> None:
         self.bot = bot
         self.runner: Final[Runner] = Runner(reset_after_execute=True)
