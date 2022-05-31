@@ -177,6 +177,9 @@ class BombBot(commands.Bot):
         elif isinstance(error, commands.BadLiteralArgument):
             return await ctx.send(f"input value for `{error.param.name}` must be either ({'or'.join(error.literals)}) or nothing")
 
+        elif isinstance(error, discord.HTTPException) and error.status == 415:
+            return await ctx.send(f'Woops, the outputted image was too large :(')
+
         elif isinstance(error, commands.MemberNotFound):
             return await ctx.send(f'Member: `{error.argument}` could not be found')
 
