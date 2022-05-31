@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional, Literal
+import textwrap
 
 from discord.ext import commands
 
@@ -218,11 +219,14 @@ class Imaging(commands.Cog):
     @commands.command(name='type', aliases=('write',))
     async def _type(self, ctx: BombContext, *, options: str = None) -> None:
         """Types out the provided text in an animation"""
+        MAX_SIZE = 1000
         if not text:
             if ref := ctx.message.reference:
                 text = ref.resolved.content
             else:
                 text = 'Specify something for me to type out next time...'
+        if len(text) > MAX_SIZE:
+            text = textwrap.shorten(text, width=MAX_SIZE + 3, placeholder=' ...')
         return await do_command(ctx, text, func=type_gif, duration=20)
 
     @commands.command(name='image-info', aliases=('info', 'imginfo', 'img-info', 'iminfo'))
