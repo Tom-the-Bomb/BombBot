@@ -1,9 +1,10 @@
 from __future__ import annotations
 from io import BytesIO
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 import textwrap
 import pathlib
+import random
 
 import humanize
 import discord
@@ -38,6 +39,10 @@ __all__: tuple[str, ...] = (
     'lego',
     'minecraft',
     'type_gif',
+    'lines',
+    'balls',
+    'squares',
+    'letters',
     'image_info',
 )
 
@@ -97,6 +102,30 @@ def _render_palette_image(colors: list[tuple[int, ...]]) -> Image.Image:
         y += TOTALSP
     return base
 
+def _gen_shape_frame(
+    img: Image.Image, 
+    method: str, 
+    *, 
+    size: int = 10, 
+    count: int = 10000,
+    **options: Any,
+) -> Image.Image:
+
+    base = Image.new('RGBA', img.size, 0)
+    cursor = ImageDraw.Draw(base)
+
+    for _ in range(count):
+        x = random.randrange(1, img.width)
+        y = random.randrange(1, img.height)
+
+        _method = getattr(cursor, method, lambda _: _)
+        _method(
+            xy=(x - size, y - size, x + size, y + size),
+            fill=img.getpixel((x, y)),
+            **options,
+        )
+    return base
+
 @pil_image()
 def flip(_, img: Image.Image) -> Image.Image:
     return ImageOps.flip(img)
@@ -140,7 +169,7 @@ def lego(_, img: Image.Image, size: int = 50) -> Image.Image:
 @pil_image(process_all_frames=False)
 def minecraft(_, img: Image.Image, size: int = 70) -> Image.Image:
     N = 16
-    img = resize_pil_prop(img, height=size)
+    img = resize_pil_prop(img, height=size, process_gif=False)
     bg = Image.new('RGBA', (img.width * N, img.height * N), 0)
     x, y = 0, 0
     for row in np.asarray(img.convert('RGBA')):
@@ -168,6 +197,26 @@ def type_gif(_, text: str, *, duration: int = 50) -> discord.File:
             frames.append(img)
     
     return save_pil_image(frames, duration=duration)
+
+@pil_image(width=300, process_all_frames=False)
+def lines(_, img: Image.Image) -> list[Image.Image]:
+    img = img.convert('RGBA')
+    return [_gen_shape_frame(img, 'line') for _ in range(3)]
+
+@pil_image(width=300, process_all_frames=False)
+def balls(_, img: Image.Image) -> list[Image.Image]:
+    img = img.convert('RGBA')
+    return [_gen_shape_frame(img, 'ellipse', outline='black') for _ in range(3)]
+
+@pil_image(width=300, process_all_frames=False)
+def squares(_, img: Image.Image) -> list[Image.Image]:
+    img = img.convert('RGBA')
+    return [_gen_shape_frame(img, 'rectangle') for _ in range(3)]
+
+@pil_image(width=300, process_all_frames=False)
+def letters(_, img: Image.Image) -> list[Image.Image]:
+    img = img.convert('RGBA')
+    return [_gen_shape_frame(img, 'text', text='a', count=3000, font=CODE_FONT, anchor='mm') for _ in range(3)]
 
 @pil_image(process_all_frames=False, auto_save=False, pass_buf=True)
 def image_info(ctx: BombContext, source: BytesIO) -> tuple[discord.Embed, discord.File, discord.File] | tuple[discord.Embed, discord.File]:

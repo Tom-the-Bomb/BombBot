@@ -207,7 +207,7 @@ def resize_pil_prop(
 
     def resize_image(img: Image.Image) -> Image.Image:
         return img.resize((width, height), resampling)
-    
+
     if getattr(image, 'is_animated', False) and process_gif:
         return ImageSequence.all_frames(image, resize_image)
     else:
@@ -338,9 +338,13 @@ def pil_image(
                     image = Image.open(image)
         
                     if width or height:
-                        image = resize_pil_prop(image, width, height)
+                        image = resize_pil_prop(image, width, height, process_gif=process_all_frames)
 
-                if process_all_frames and (isinstance(image, list) or getattr(image, 'is_animated', False) or str(image.format).lower() == 'gif'):
+                if process_all_frames and (
+                    isinstance(image, list) or 
+                    getattr(image, 'is_animated', False) or 
+                    str(image.format).lower() == 'gif'
+                ):
                     result = ImageSequence.all_frames(image, lambda frame: func(ctx, frame, *args, **kwargs))
                 else:
                     result = func(ctx, image, *args, **kwargs)
@@ -377,7 +381,11 @@ def wand_image(
                     if width or height:
                         image = resize_wand_prop(image, width, height)
 
-                if process_all_frames and (isinstance(image, list) or len(image.sequence) > 1 or str(image.format).lower() == 'gif'):
+                if process_all_frames and (
+                    isinstance(image, list) or 
+                    len(image.sequence) > 1 or 
+                    str(image.format).lower() == 'gif'
+                ):
                     result = process_wand_gif(image, func, ctx, *args, **kwargs)
                 else:
                     result = func(ctx, image, *args, **kwargs)

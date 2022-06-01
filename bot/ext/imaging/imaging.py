@@ -206,7 +206,7 @@ class Imaging(commands.Cog):
         """Flips the provided image on it's y-axis"""
         return await do_command(ctx, image, func=mirror)
 
-    @commands.command(name='contour', aliases=('lines',))
+    @commands.command(name='contour')
     async def _contour(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
         """returns only the outline & contour of the provided image"""
         return await do_command(ctx, image, func=contour)
@@ -228,6 +228,26 @@ class Imaging(commands.Cog):
         if len(text) > MAX_SIZE:
             text = textwrap.shorten(text, width=MAX_SIZE + 3, placeholder=' ...')
         return await do_command(ctx, text, func=type_gif, duration=20)
+
+    @commands.command(name='lines', aliases=('line', 'streaks'))
+    async def _lines(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
+        """Makes the provided image all streaky and stuff"""
+        return await do_command(ctx, image, func=lines)
+
+    @commands.command(name='balls', aliases=('ball', 'bubbles', 'circles'))
+    async def _balls(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
+        """Builds the provided image with balls"""
+        return await do_command(ctx, image, func=balls)
+
+    @commands.command(name='squares', aliases=('square', 'boxes', 'blocks'))
+    async def _squares(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
+        """Builds the provided image with squares"""
+        return await do_command(ctx, image, func=squares)
+
+    @commands.command(name='letters', aliases=('letter',))
+    async def _letters(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
+        """Builds the provided image with random letters"""
+        return await do_command(ctx, image, func=letters)
 
     @commands.command(name='image-info', aliases=('info', 'imginfo', 'img-info', 'iminfo'))
     async def _image_info(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
