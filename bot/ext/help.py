@@ -102,7 +102,7 @@ class BombHelp(commands.HelpCommand):
     def _format_param(self, name: str, param: commands.Parameter) -> str:
         annotation = (
             'A valid `image` source, optional\n(by default the author\'s avatar)' if param.converter in (Optional[ImageConverter], ImageConverter)
-            else 'see "Options" below' if name == 'options' or issubclass(param, commands.FlagConverter)
+            else 'see "Options" below' if name == 'options'
             else getattr(param.converter, '__name__', param.converter)
         )
 
