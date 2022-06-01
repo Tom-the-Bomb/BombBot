@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from wand.color import Color
 
 __all__: tuple[str, ...] = (
+    'cv_floor',
     'cartoon',
     'colordetect',
     'cornerdetect',
@@ -20,6 +21,25 @@ __all__: tuple[str, ...] = (
 
 BW: Final[np.ndarray] = np.array([[255, 255, 255], [0, 0, 0]])
 
+
+@pil_image(width=600)
+@to_array('RGBA', cv2.COLOR_RGBA2BGRA)
+def cv_floor(_, img: np.ndarray) -> np.ndarray:
+    w, h, _ = img.shape
+
+    _from = np.float32([
+        [0, 0], [w, 0], 
+        [0, h], [w, h]
+    ])
+    _to = np.float32([
+        [w * 0.3, h * 0.5], 
+        [w * 0.8, h * 0.5], 
+        [w * 0.1, h], 
+        [w * 0.9, h]]
+    )
+    p = cv2.getPerspectiveTransform(_from, _to)
+    img = cv2.warpPerspective(img, p, (w, h), borderMode=cv2.BORDER_WRAP)
+    return img
 
 @pil_image()
 @to_array()

@@ -418,7 +418,7 @@ def _convert_from_arr(
     arr: np.ndarray | Any, 
     og_image: Image.Image | WandImage, 
     arr_mode: int,
-) -> Image | WandImage | Any:
+) -> Image.Image | WandImage | Any:
 
     if isinstance(arr, np.ndarray):
         arr = cv2.cvtColor(arr, arr_mode)

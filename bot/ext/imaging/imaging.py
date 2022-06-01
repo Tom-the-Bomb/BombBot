@@ -120,9 +120,9 @@ class Imaging(commands.Cog):
         """Distorts the provided image in the shape of an arc"""
         return await do_command(ctx, image, func=arc, degree=options.degree)
 
-    @commands.command(name='floor')
+    @commands.group(name='floor', aliases=('tile', 'tiles'), invoke_without_command=True)
     async def _floor(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
-        """Makes tiled floor with the provided image"""
+        """Makes a tiled floor with the provided image"""
         return await do_command(ctx, image, func=floor)
 
     @commands.command(name='gallery')
@@ -256,6 +256,13 @@ class Imaging(commands.Cog):
         await ctx.send(embed=embed, files=files)
 
     # opencv-python functions
+
+    @_floor.command(name='speed', aliases=('fast',))
+    async def _speed_floor(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+        """Makes a tiled floor with the provided image, but utilizes a faster algorithm
+        but at the same time producing slightly poorer quality results when compared to the parent command
+        """
+        return await do_command(ctx, image, func=cv_floor)
 
     @commands.command(name='canny', aliases=('edgedetect', 'edge-detect', 'edges'))
     async def _canny(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:

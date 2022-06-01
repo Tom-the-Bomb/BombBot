@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from typing import Optional, Mapping, TypeAlias, TYPE_CHECKING
+from typing import ClassVar, Optional, Mapping, TypeAlias, TYPE_CHECKING
 from datetime import datetime as dt
-from inspect import getdoc
+import inspect
 
 import discord
 from discord.ext import commands
+
+from ..utils.imaging import ImageConverter
 
 if TYPE_CHECKING:
     from ..bot import BombBot
@@ -53,7 +55,11 @@ class HelpView(discord.ui.View):
 
 class BombHelp(commands.HelpCommand):
     context: BombContext
-
+    _DOC_FORMATS_ENV: ClassVar[dict[str, str]] = {
+        ':integer:': '[integer](https://en.wikipedia.org/wiki/Integer)',
+        ':decimal:': '[decimal](https://en.wikipedia.org/wiki/Decimal)',
+        ':css:': '[css syntax](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value)'
+    }
 
     def get_base_embed(self) -> discord.Embed:
         ctx = self.context
@@ -93,10 +99,31 @@ class BombHelp(commands.HelpCommand):
 
         return embed
 
-    def get_flag_doc(self, command: commands.Command) -> Optional[str]:
+    def _format_param(self, name: str, param: commands.Parameter) -> str:
+        annotation = (
+            'A valid `image` source, optional\n(by default the author\'s avatar)' if param.converter in (Optional[ImageConverter], ImageConverter)
+            else 'see "Options" below' if name == 'options' or issubclass(param, commands.FlagConverter)
+            else getattr(param.converter, '__name__', param.converter)
+        )
+
+        string = f'• `{name}` {annotation}'
+        if param.default != inspect._empty:
+            string += f' (by default {param.default}'
+        return string
+
+    def get_param_doc(self, params: dict[str, commands.Parameter]) -> str:
+        return '\n'.join(
+            self._format_param(name, param) for name, param in params.items()
+        ) or '-'
+
+    def get_flag_doc(self, command: commands.Command) -> str:
         if flags := command.clean_params.get('options'):
             if issubclass(converter := flags.converter, commands.FlagConverter):
-                return getdoc(converter).strip() or '-'
+                doc = inspect.getdoc(converter).strip() or '-'
+
+                for key, value in self._DOC_FORMATS_ENV.items():
+                    doc = doc.replace(key, value)
+                return doc
 
     def get_command_embed(self, command: commands.Command) -> None:
         signature = self.get_command_signature(command)
@@ -106,6 +133,9 @@ class BombHelp(commands.HelpCommand):
         embed.title = command.qualified_name
         embed.description = f'```ps\n{signature}\n```\n{command.help}\n\n\u200b'
         embed.add_field(name='Aliases:', value=f'`{aliases}`', inline=False)
+
+        if params := command.clean_params:
+            embed.add_field(name='Parameters', value=self.get_param_doc(params))
         
         if flags := self.get_flag_doc(command):
             embed.add_field(name='Options', value=flags or '-', inline=False)
