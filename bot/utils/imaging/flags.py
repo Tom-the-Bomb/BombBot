@@ -14,7 +14,7 @@ __all__: tuple[str, ...] = (
     'Threshold',
     'CharcoalIntensity',
     'LegoSize',
-    'McSize',
+    'BlockSize',
     'ColorFlag',
     'ReplaceColors',
 )
@@ -58,11 +58,11 @@ class LegoSize(FlagConverter):
     """
     size: Range[int, 1, 60] = 50
 
-class McSize(FlagConverter):
-    """• `size:` an :integer: between `1` and `80` (by default `70`)
+class BlockSize(FlagConverter):
+    """• `size:` an :integer: between `1` and `110` (by default `70`)
     Specifies the number of blocks to use for the generated image
     """
-    size: Range[int, 1, 80] = 70
+    size: Range[int, 1, 110] = 70
 
 class ColorFlag(FlagConverter):
     """• `color:` any valid color in :CSS syntax:

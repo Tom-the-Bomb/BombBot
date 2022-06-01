@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 import textwrap
 import pathlib
 import random
+import string
 
 import humanize
 import discord
@@ -32,6 +33,7 @@ if TYPE_CHECKING:
     from ..context import BombContext
 
 __all__: tuple[str, ...] = (
+    'matrix',
     'flip',
     'mirror',
     'contour',
@@ -125,6 +127,29 @@ def _gen_shape_frame(
             **options,
         )
     return base
+
+def _generate_matrix_frame(img: Image.Image, *, size: int = 30) -> Image.Image:
+    if CODE_FONT.size != size:
+        font = CODE_FONT.font_variant(size=size)
+    else:
+        font = CODE_FONT
+
+    base = Image.new('RGB', (img.width * size, img.height * size), 0)
+    cursor = ImageDraw.Draw(base)
+    x, y = 0, 0
+    for row in np.asarray(img.convert('RGBA')):
+        for px in row:
+            if px[-1] != 0:
+                cursor.text((x, y), random.choice(string.printable), font=font, fill=tuple(px[:-1]))
+            x += size
+        x = 0
+        y += size
+    return base
+
+@pil_image(process_all_frames=False)
+def matrix(_, img: Image.Image, *, size: int = 70) -> list[Image.Image]:
+    img = resize_pil_prop(img, height=size, process_gif=False)
+    return [_generate_matrix_frame(img) for _ in range(4)]
 
 @pil_image()
 def flip(_, img: Image.Image) -> Image.Image:

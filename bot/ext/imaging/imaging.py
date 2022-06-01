@@ -185,7 +185,7 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=lego, size=options.size)
 
     @commands.command(name='minecraft', aliases=('mc',))
-    async def _minecraft(self, ctx: BombContext, image: Optional[ImageConverter], *, options: McSize) -> None:
+    async def _minecraft(self, ctx: BombContext, image: Optional[ImageConverter], *, options: BlockSize) -> None:
         """Builds the provided image with minecraft blocks"""
         return await do_command(ctx, image, func=minecraft, size=options.size)
 
@@ -195,6 +195,11 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=cube)
 
     # pil functions
+
+    @commands.command(name='matrix', aliases=('code', 'ascii'))
+    async def _matrix(self, ctx: BombContext, image: Optional[ImageConverter], *, options: BlockSize) -> None:
+        """Generates a matrix gif with the provided image"""
+        return await do_command(ctx, image, func=matrix, size=options.size)
 
     @commands.command(name='flip')
     async def _flip(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
