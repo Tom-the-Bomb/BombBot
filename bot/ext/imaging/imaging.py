@@ -262,6 +262,11 @@ class Imaging(commands.Cog):
 
     # opencv-python functions
 
+    @commands.command(name='invert-scan', aliases=('invertscan', 'scaninvert', 'scan-invert'))
+    async def _invert_scan(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+        """Inverts the image but as part of a scanning animation"""
+        return await do_command(ctx, image, func=invert_scan)
+
     @_floor.command(name='speed', aliases=('fast',))
     async def _speed_floor(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Makes a tiled floor with the provided image, but utilizes a faster algorithm

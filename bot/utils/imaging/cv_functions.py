@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from wand.color import Color
 
 __all__: tuple[str, ...] = (
+    'invert_scan',
     'cv_floor',
     'cartoon',
     'colordetect',
@@ -21,6 +22,22 @@ __all__: tuple[str, ...] = (
 
 BW: Final[np.ndarray] = np.array([[255, 255, 255], [0, 0, 0]])
 
+@pil_image(process_all_frames=False)
+@to_array('RGBA', cv2.COLOR_RGBA2BGRA)
+def invert_scan(_, img: np.ndarray) -> list[np.ndarray]:
+    w = img.shape[1]
+    *rgb, a = cv2.split(img)
+    img = cv2.merge(rgb)
+
+    def _gen_frame(i):
+        copy = img.copy()
+        copy[:,:i] = ~copy[:,:i]
+        return copy
+
+    frames = [_gen_frame(i) for i in range(0, w, 10)]
+    frames += [~f for f in frames]
+    frames = [cv2.merge(cv2.split(f) + (a,)) for f in frames]
+    return frames
 
 @pil_image(width=600)
 @to_array('RGBA', cv2.COLOR_RGBA2BGRA)
