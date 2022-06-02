@@ -125,7 +125,7 @@ class BombHelp(commands.HelpCommand):
                     doc = doc.replace(key, value)
                 return doc
 
-    def get_command_embed(self, command: commands.Command) -> None:
+    def get_command_embed(self, command: commands.Command) -> discord.Embed:
         signature = self.get_command_signature(command)
         aliases = '` `'.join(command.aliases) or 'none'
 
