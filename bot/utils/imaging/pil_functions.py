@@ -120,7 +120,7 @@ def _gen_shape_frame(
         x = random.randrange(1, img.width)
         y = random.randrange(1, img.height)
 
-        _method = getattr(cursor, method, lambda _: _)
+        _method = getattr(cursor, method, lambda *_: _)
         _method(
             xy=(x - size, y - size, x + size, y + size),
             fill=img.getpixel((x, y)),
@@ -178,7 +178,7 @@ def spin(_, img: Image.Image) -> list[Image.Image]:
 
 @pil_image(process_all_frames=False)
 def lego(_, img: Image.Image, size: int = 50) -> Image.Image:
-    img = resize_pil_prop(img, height=size, process_gif=False)
+    img = resize_pil_prop(img, height=size, resampling=Image.BILINEAR, process_gif=False)
     with Image.new('RGBA', (img.width * LEGO.width, img.height * LEGO.height), 0) as bg:
         x, y = 0, 0
         for row in np.asarray(img.convert('RGBA')):
@@ -194,7 +194,7 @@ def lego(_, img: Image.Image, size: int = 50) -> Image.Image:
 @pil_image(process_all_frames=False)
 def minecraft(_, img: Image.Image, size: int = 70) -> Image.Image:
     N = 16
-    img = resize_pil_prop(img, height=size, process_gif=False)
+    img = resize_pil_prop(img, height=size, resampling=Image.BILINEAR, process_gif=False)
     bg = Image.new('RGBA', (img.width * N, img.height * N), 0)
     x, y = 0, 0
     for row in np.asarray(img.convert('RGBA')):

@@ -174,25 +174,20 @@ class Imaging(commands.Cog):
         """solarizes the provided image, resulting in a burnt effect"""
         return await do_command(ctx, image, func=solarize, threshold=options.threshold, channel=options.channel)
     
-    @commands.command(name='spread-cards', aliases=('cards', 'spread', 'spreadcards'))
+    @commands.command(name='spread-cards', aliases=('cards', 'spreadcards'))
     async def _spread_cards(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
         """Spreads the provided image out like playing cards"""
         return await do_command(ctx, image, func=spread_cards)
 
-    @commands.command(name='lego')
-    async def _lego(self, ctx: BombContext, image: Optional[ImageConverter], *, options: LegoSize) -> None:
-        """Builds the provided image with lego pieces"""
-        return await do_command(ctx, image, func=lego, size=options.size)
-
-    @commands.command(name='minecraft', aliases=('mc',))
-    async def _minecraft(self, ctx: BombContext, image: Optional[ImageConverter], *, options: BlockSize) -> None:
-        """Builds the provided image with minecraft blocks"""
-        return await do_command(ctx, image, func=minecraft, size=options.size)
-
     @commands.command(name='cube')
-    async def cube(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
+    async def _cube(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
         """Wraps the provided image on a cube"""
         return await do_command(ctx, image, func=cube)
+
+    @commands.command(name='spreadout', aliases=('spread',))
+    async def _spreadout(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
+        """Wraps the provided image on a cube"""
+        return await do_command(ctx, image, func=spread_out)
 
     # pil functions
 
@@ -234,6 +229,16 @@ class Imaging(commands.Cog):
             text = textwrap.shorten(text, width=MAX_SIZE + 3, placeholder=' ...')
         return await do_command(ctx, text, func=type_gif, duration=20)
 
+    @commands.command(name='lego')
+    async def _lego(self, ctx: BombContext, image: Optional[ImageConverter], *, options: LegoSize) -> None:
+        """Builds the provided image with lego pieces"""
+        return await do_command(ctx, image, func=lego, size=options.size)
+
+    @commands.command(name='minecraft', aliases=('mc',))
+    async def _minecraft(self, ctx: BombContext, image: Optional[ImageConverter], *, options: BlockSize) -> None:
+        """Builds the provided image with minecraft blocks"""
+        return await do_command(ctx, image, func=minecraft, size=options.size)
+
     @commands.command(name='lines', aliases=('line', 'streaks'))
     async def _lines(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
         """Makes the provided image all streaky and stuff"""
@@ -262,8 +267,8 @@ class Imaging(commands.Cog):
 
     # opencv-python functions
 
-    @commands.command(name='invert-scan', aliases=('invertscan', 'scaninvert', 'scan-invert'))
-    async def _invert_scan(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+    @commands.command(name='turnevil', aliases=('evil', 'invertscan', 'scaninvert', 'scan-invert', 'invert-scan'))
+    async def _turn_evil(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Inverts the image but as part of a scanning animation"""
         return await do_command(ctx, image, func=invert_scan)
 

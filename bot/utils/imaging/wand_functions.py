@@ -45,6 +45,7 @@ __all__: tuple[str, ...] = (
     'huerotate',
     'spread_cards',
     'cube',
+    'spread_out',
 )
 
 WAND_CIRCLE_MASK: Image = wand_circle_mask(1000, 1000)
@@ -197,9 +198,7 @@ def bulge(_, img: Image) -> Image:
             base.sequence.append(clone)
         del clone
     
-    for rframe in reversed(base.sequence):
-        base.sequence.append(rframe)
-        del rframe
+    base.sequence.extend(reversed(base.sequence))
     return base
 
 @wand_image(width=400, process_all_frames=False)
@@ -213,9 +212,7 @@ def swirl(_, img: Image) -> Image:
         base.sequence.append(img)
     del img
     
-    for rframe in reversed(base.sequence):
-        base.sequence.append(rframe)
-        del rframe
+    base.sequence.extend(reversed(base.sequence))
     return base
 
 @wand_image(process_all_frames=False)
@@ -332,4 +329,15 @@ def cube(_, img: Image) -> Image:
         base.composite(left, base.width - left.width, 145)
 
     base.format = 'png'
+    return base
+
+@wand_image(width=400)
+def spread_out(_, img: Image) -> Image:
+    base = Image()
+    for i in range(0, 50, 4):
+        with img.clone() as clone:
+            clone.spread(i)
+            base.sequence.append(clone)
+        del clone
+    base.sequence.extend(reversed(base.sequence))
     return base

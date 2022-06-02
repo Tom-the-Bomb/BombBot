@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Final
 
 import cv2
 import numpy as np
+from PIL import Image
 
 from .image import get_closest_color, pil_image, to_array
 
@@ -22,19 +23,37 @@ __all__: tuple[str, ...] = (
 
 BW: Final[np.ndarray] = np.array([[255, 255, 255], [0, 0, 0]])
 
+
+def _gen_invert_frame(
+    img: np.ndarray, 
+    span: int,
+    bar_size: int, 
+    fuzz_span: float,
+    *,
+    spread: bool = True,
+) -> np.ndarray:
+    width = img.shape[1]
+    img[:,:span] = ~img[:,:span]
+
+    if spread:
+        start = 0 if span <= bar_size else span - bar_size
+        end = width if span >= width - bar_size else span + bar_size
+
+        img[:,start:end] = np.asarray(
+            Image.fromarray(img[:,start:end])
+            .effect_spread(round(bar_size * fuzz_span))
+        )
+    return img
+
 @pil_image(process_all_frames=False)
 @to_array('RGBA', cv2.COLOR_RGBA2BGRA)
-def invert_scan(_, img: np.ndarray) -> list[np.ndarray]:
-    w = img.shape[1]
+def invert_scan(_, img: np.ndarray, *, spread: bool = True, bar_span: int = 11, fuzz_span: float = 0.8) -> list[np.ndarray]:
+    width = img.shape[1]
     *rgb, a = cv2.split(img)
     img = cv2.merge(rgb)
+    bar_size = width // bar_span
 
-    def _gen_frame(i):
-        copy = img.copy()
-        copy[:,:i] = ~copy[:,:i]
-        return copy
-
-    frames = [_gen_frame(i) for i in range(0, w, 10)]
+    frames = [_gen_invert_frame(img.copy(), i, bar_size, fuzz_span, spread=spread) for i in range(0, width, 10)]
     frames += [~f for f in frames]
     frames = [cv2.merge(cv2.split(f) + (a,)) for f in frames]
     return frames
@@ -46,16 +65,16 @@ def cv_floor(_, img: np.ndarray) -> np.ndarray:
 
     _from = np.float32([
         [0, 0], [w, 0], 
-        [0, h], [w, h]
+        [0, h], [w, h],
     ])
     _to = np.float32([
         [w * 0.3, h * 0.5], 
         [w * 0.8, h * 0.5], 
         [w * 0.1, h], 
-        [w * 0.9, h]]
-    )
-    p = cv2.getPerspectiveTransform(_from, _to)
-    img = cv2.warpPerspective(img, p, (w, h), borderMode=cv2.BORDER_WRAP)
+        [w * 0.9, h],
+    ])
+    transform = cv2.getPerspectiveTransform(_from, _to)
+    img = cv2.warpPerspective(img, transform, (w, h), borderMode=cv2.BORDER_WRAP)
     return img
 
 @pil_image()
