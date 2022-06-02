@@ -113,10 +113,13 @@ def _gen_shape_frame(
     **options: Any,
 ) -> Image.Image:
 
+    text_arg = options.get('text')
     base = Image.new('RGBA', img.size, 0)
     cursor = ImageDraw.Draw(base)
 
     for _ in range(count):
+        if text_arg:
+            options['text'] = text_arg()
         x = random.randrange(1, img.width)
         y = random.randrange(1, img.height)
 
@@ -241,7 +244,16 @@ def squares(_, img: Image.Image) -> list[Image.Image]:
 @pil_image(width=300, process_all_frames=False)
 def letters(_, img: Image.Image) -> list[Image.Image]:
     img = img.convert('RGBA')
-    return [_gen_shape_frame(img, 'text', text='a', count=3000, font=CODE_FONT, anchor='mm') for _ in range(3)]
+    return [
+        _gen_shape_frame(
+            img=img, 
+            method='text', 
+            text=lambda: random.choice(string.ascii_lowercase), 
+            count=3000, 
+            font=CODE_FONT, 
+            anchor='mm',
+        ) for _ in range(3)
+    ]
 
 @pil_image(process_all_frames=False, auto_save=False, pass_buf=True)
 def image_info(ctx: BombContext, source: BytesIO) -> tuple[discord.Embed, discord.File, discord.File] | tuple[discord.Embed, discord.File]:
