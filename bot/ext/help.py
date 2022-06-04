@@ -162,6 +162,14 @@ class BombHelp(commands.HelpCommand):
     async def send_group_help(self, group: commands.Group) -> None:
         return await self.send_command_help(group)
 
+    async def send_cog_help(self, cog: commands.Cog) -> None:
+        mapping = {cog: cog.get_commands()}
+        embed = await self.get_cog_embed(cog, mapping)
+
+        channel = self.get_destination()
+        await channel.send(embed=embed)
+
+
 class Help(commands.Cog):
     """Help Command, that's quite about it
     """
