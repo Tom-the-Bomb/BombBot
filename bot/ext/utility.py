@@ -21,9 +21,9 @@ class Utility(commands.Cog):
     @commands.command(name='execute', aliases=('eval', 'run'))
     async def execute(self, ctx: BombContext, language: str, *, code: codeblock_converter) -> None:
         """executes the provided `code` in the provided `language`"""
-        
+
         response = await self.tio.execute(code.content, language=language)
-        output = f'```{code.language or "yml"}\n{response.output}\n```'
+        output = f'```{code.language or language or "yml"}\n{response.output}\n```'
         
         if len(output) > 2000:
             await ctx.send(await ctx.bot.post_mystbin(response.output))
