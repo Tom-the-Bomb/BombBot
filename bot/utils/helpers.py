@@ -60,8 +60,8 @@ def truncate(content: str, limit: int = 2000) -> str:
         return content
 
 class Regexes:
-    TENOR_PAGE_REGEX: ClassVar[re.Pattern] = re.compile(r'https?://tenor\.com/view/\S+')
-    TENOR_GIF_REGEX: ClassVar[re.Pattern] = re.compile(r'https?://c\.tenor\.com/\S+/\S+\.gif')
+    TENOR_PAGE_REGEX: ClassVar[re.Pattern] = re.compile(r'https?://(www\.)?tenor\.com/view/\S+')
+    TENOR_GIF_REGEX: ClassVar[re.Pattern] = re.compile(r'https?://(www\.)?c\.tenor\.com/\S+/\S+\.gif')
 
 class AuthorOnlyView(discord.ui.View):
 
