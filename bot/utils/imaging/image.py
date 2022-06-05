@@ -252,6 +252,8 @@ def wand_save_list(
             frame.delay = duration[i]
         elif duration is not None:
             frame.delay = duration
+        if is_pil:
+            frame.delay //= 10
         base.sequence.append(frame)
 
     base.dispose = 'background'
@@ -334,9 +336,11 @@ def pil_image(
             img = await ImageConverter().get_image(ctx, img)
             
             def inner(image: BytesIO) -> R:
+                durations = None
                 if not pass_buf:
-                    image = Image.open(image)
-        
+                    image: Image.Image = Image.open(image)
+                    durations = image.info.get('duration')
+
                     if width or height:
                         image = resize_pil_prop(image, width, height, process_gif=process_all_frames)
 
@@ -350,7 +354,7 @@ def pil_image(
                     result = func(ctx, image, *args, **kwargs)
 
                 if auto_save and isinstance(result, (Image.Image, list, ImageSequence.Iterator)):
-                    result = save_pil_image(result, duration=duration, file=to_file)
+                    result = save_pil_image(result, duration=durations or duration, file=to_file)
                 return result
 
             return await asyncio.to_thread(inner, img)
@@ -374,9 +378,11 @@ def wand_image(
             img = await ImageConverter().get_image(ctx, img)
 
             def inner(image: BytesIO) -> R_:
+                durations = None
                 if not pass_buf:
-                    image = WandImage(file=image)
+                    image: WandImage = WandImage(file=image)
                     image.background_color = 'none'
+                    durations = [frame.delay for frame in image.sequence]
 
                     if width or height:
                         image = resize_wand_prop(image, width, height)
@@ -391,7 +397,7 @@ def wand_image(
                     result = func(ctx, image, *args, **kwargs)
 
                 if auto_save and isinstance(result, (WandImage, list)):
-                    result = save_wand_image(result, duration=duration, file=to_file)
+                    result = save_wand_image(result, duration=durations or duration, file=to_file)
                 return result
 
             return await asyncio.to_thread(inner, img)
