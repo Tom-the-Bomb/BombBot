@@ -7,6 +7,7 @@ import inspect
 import discord
 from discord.ext import commands
 
+from ..utils.helpers import AuthorOnlyView
 from ..utils.imaging import ImageConverter
 
 if TYPE_CHECKING:
@@ -38,7 +39,7 @@ class HelpSelect(discord.ui.Select['HelpView']):
 
             await interaction.response.edit_message(embed=embed)
 
-class HelpView(discord.ui.View):
+class HelpView(AuthorOnlyView):
 
     def __init__(self, help_menu: BombHelp, mapping: HelpMapping, *, timeout: float = None) -> None:
         super().__init__(timeout=timeout)
