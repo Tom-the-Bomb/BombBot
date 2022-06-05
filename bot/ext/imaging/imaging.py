@@ -24,6 +24,16 @@ class Imaging(commands.Cog):
         self.bot = bot
         self._cooldown = commands.CooldownMapping.from_cooldown(1, 7, commands.BucketType.user)
 
+    async def cog_load(self) -> None:
+        from importlib import reload
+        from bot.utils.imaging import pil_functions
+        from bot.utils.imaging import wand_functions
+        from bot.utils.imaging import cv_functions
+
+        reload(pil_functions)
+        reload(wand_functions)
+        reload(cv_functions)
+
     async def cog_check(self, ctx: BombContext) -> bool:
         if await ctx.bot.is_owner(ctx.author):
             return True
@@ -265,6 +275,11 @@ class Imaging(commands.Cog):
         embed, *files = await image_info(ctx, image)
         await ctx.send(embed=embed, files=files)
 
+    @commands.command(name='caption')
+    async def _caption(self, ctx: BombContext, image: Optional[ImageConverter], *, text: str) -> None:
+        """Adds a caption onto an image"""
+        return await do_command(ctx, image, func=caption, text=text)
+
     # opencv-python functions
 
     @commands.command(name='turnevil', aliases=('evil', 'invertscan', 'scaninvert', 'scan-invert', 'invert-scan'))
@@ -306,13 +321,4 @@ class Imaging(commands.Cog):
         
 
 async def setup(bot: BombBot) -> None:
-    from importlib import reload
-    from bot.utils.imaging import pil_functions
-    from bot.utils.imaging import wand_functions
-    from bot.utils.imaging import cv_functions
-
-    reload(pil_functions)
-    reload(wand_functions)
-    reload(cv_functions)
-    
     await bot.add_cog(Imaging(bot))

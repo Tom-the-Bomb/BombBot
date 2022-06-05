@@ -10,6 +10,7 @@ import string
 import humanize
 import discord
 import numpy as np
+import pilmoji
 from PIL import (
     Image,
     ImageOps,
@@ -46,6 +47,7 @@ __all__: tuple[str, ...] = (
     'squares',
     'letters',
     'image_info',
+    'caption',
 )
 
 def _load_mc_colors() -> dict[tuple[int, int, int], Image.Image]:
@@ -64,6 +66,10 @@ UNICODE_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(
 CODE_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(
     font=get_asset('Monaco-Linux.ttf'), 
     size=18,
+)
+CAPTION_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(
+    font=get_asset('impact.ttf'),
+    size=30,
 )
 LEGO: Image.Image = (
     Image.open(
@@ -299,3 +305,22 @@ def image_info(ctx: BombContext, source: BytesIO) -> tuple[discord.Embed, discor
         return embed, thumbnail, palette_img
     except (NameError, UnboundLocalError):
         return embed, thumbnail
+
+@pil_image(width=300)
+def caption(_, img: Image.Image, *, text: str) -> Image.Image:
+    margin: int = 10
+    text = '\n'.join(textwrap.wrap(text, width=15, replace_whitespace=False))
+
+    text_width, extra_h = pilmoji.getsize(text, font=CAPTION_FONT)
+    extra_h += margin * 2
+    
+    if (max_width := text_width + margin * 2) >= img.width:
+        img = resize_pil_prop(img, width=max_width)
+
+    canvas = Image.new('RGBA', (img.width, img.height + extra_h), 'white')
+    x = img.width // 2 - text_width // 2
+    with pilmoji.Pilmoji(canvas) as draw:
+        draw.text((x, margin), text, font=CAPTION_FONT, fill='black')
+        
+    canvas.paste(img, (0, extra_h))
+    return canvas

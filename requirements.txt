@@ -11,3 +11,4 @@ bs4
 lxml
 opencv-python
 async_tio
+pilmoji
