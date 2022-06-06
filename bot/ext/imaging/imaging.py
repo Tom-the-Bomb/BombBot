@@ -280,6 +280,11 @@ class Imaging(commands.Cog):
         """Adds a caption onto an image"""
         return await do_command(ctx, image, func=caption, text=text)
 
+    @commands.command(name='bounce')
+    async def _bounce(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+        """Bounces an image... up.. and down.."""
+        return await do_command(ctx, image, func=bounce)
+
     # opencv-python functions
 
     @commands.command(name='turnevil', aliases=('evil', 'invertscan', 'scaninvert', 'scan-invert', 'invert-scan'))

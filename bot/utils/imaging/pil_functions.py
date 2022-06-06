@@ -1,4 +1,5 @@
 from __future__ import annotations
+from concurrent.futures import process
 from io import BytesIO
 
 from typing import TYPE_CHECKING, Any
@@ -48,6 +49,7 @@ __all__: tuple[str, ...] = (
     'letters',
     'image_info',
     'caption',
+    'bounce',
 )
 
 def _load_mc_colors() -> dict[tuple[int, int, int], Image.Image]:
@@ -330,3 +332,18 @@ def caption(_, img: Image.Image, *, text: str) -> Image.Image:
 
     canvas.paste(img, (0, extra_h))
     return canvas
+
+@pil_image(width=300, duration=60, process_all_frames=False)
+def bounce(_, img: Image.Image, *, circular: bool = False) -> list[Image.Image]:
+    img = img.convert('RGBA')
+
+    if circular:
+        img = pil_circular(img, mask=PIL_CIRCLE_MASK)
+
+    frames = []
+    for i in np.arange(-1, 1, 0.09):
+        base = Image.new('RGBA', (img.width, img.height * 2), 0)
+        translate = i ** 2
+        base.paste(img, (0, round(img.height * translate)))
+        frames.append(base)
+    return frames
