@@ -24,6 +24,7 @@ from discord.ext import commands
 from PIL import (
     Image,
     ImageOps,
+    ImageChops,
     ImageDraw,
     ImageSequence,
 )
@@ -132,9 +133,9 @@ def wand_circle_mask(width: int, height: int) -> WandImage:
     return mask
 
 def pil_circle_mask(width: int, height: int) -> Image.Image:
-    mask = Image.new('L', (width, height), 0)
+    mask = Image.new('RGBA', (width, height), 0)
     draw = ImageDraw.Draw(mask)
-    draw.ellipse((0, 0, width, height), fill=255)
+    draw.ellipse((0, 0, width, height), fill='white')
     return mask
 
 def wand_circular(img: I_, *, mask: Optional[WandImage] = None) -> I_:
@@ -158,7 +159,7 @@ def pil_circular(img: Image.Image, *, mask: Optional[Image.Image] = None) -> Ima
         mask = mask.resize(img.size, Image.ANTIALIAS)
 
     out = ImageOps.fit(img, mask.size, centering=(0.5, 0.5))
-    out.putalpha(mask)
+    out = ImageChops.darker(img, mask)
     return out
 
 def _get_prop_size(

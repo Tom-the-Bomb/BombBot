@@ -334,7 +334,7 @@ def caption(_, img: Image.Image, *, text: str) -> Image.Image:
     return canvas
 
 @pil_image(width=300, duration=60, process_all_frames=False)
-def bounce(_, img: Image.Image, *, circular: bool = False) -> list[Image.Image]:
+def bounce(_, img: Image.Image, *, circular: bool = True) -> list[Image.Image]:
     img = img.convert('RGBA')
 
     if circular:
