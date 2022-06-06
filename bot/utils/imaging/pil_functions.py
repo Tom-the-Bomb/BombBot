@@ -297,7 +297,9 @@ def image_info(ctx: BombContext, source: BytesIO) -> tuple[discord.Embed, discor
 @pil_image(width=300)
 def caption(_, img: Image.Image, *, text: str) -> Image.Image:
     y, margin, spacing = 10, 10, 4
-    fallback = UNICODE_FONT.font_variant(size=round(CAPTION_FONT.size * 0.9))
+    fallback = UNICODE_FONT.font_variant(
+        size=round(CAPTION_FONT.size * 0.9)
+    )
 
     parts = textwrap.wrap(
         text=text, 
