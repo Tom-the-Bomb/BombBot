@@ -319,9 +319,9 @@ def caption(_, img: Image.Image, *, text: str) -> Image.Image:
         img = resize_pil_prop(img, width=max_width)
 
     canvas = Image.new('RGBA', (img.width, img.height + extra_h), 'white')
-    with pilmoji.Pilmoji(canvas) as draw:
+    with pilmoji.Pilmoji(canvas, emoji_scale_factor=1.05) as draw:
         for line in parts:
-            line_width = pilmoji.getsize(line, font=CAPTION_FONT)[0]
+            line_width = draw.getsize(line, font=CAPTION_FONT)[0]
             x = start = img.width // 2 - line_width // 2
 
             for part, font in font_fallback(line, CAPTION_FONT, fallback):
@@ -334,9 +334,8 @@ def caption(_, img: Image.Image, *, text: str) -> Image.Image:
                     font=font, 
                     fill='black',
                     emoji_position_offset=(0, 1),
-                    emoji_scale_factor=1.05,
                 )
-                x += pilmoji.getsize(part, font)[0]
+                x += draw.getsize(part, font)[0]
             x = start
             y += spacing
 
