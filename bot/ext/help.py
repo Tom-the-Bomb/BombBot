@@ -172,8 +172,7 @@ class BombHelp(commands.HelpCommand):
 
 
 class Help(commands.Cog):
-    """Help Command, that's quite about it
-    """
+    """Help Command, that's quite about it"""
     def __init__(self, bot: BombBot) -> None:
         self.bot = bot
 
