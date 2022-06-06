@@ -10,6 +10,7 @@ import jishaku
 import discord
 from discord.ext import commands
 from aiohttp import MultipartWriter, ClientSession
+from wand.image import Image
 
 from .utils.context import BombContext
 from .utils.imaging.converter import ImageTooLarge, InvalidColor
@@ -137,13 +138,26 @@ class BombBot(commands.Bot):
                 paste = 'https://mystb.in/' + data['pastes'][0]['id']
                 return paste
 
-    async def get_twemoji(self, emoji: str) -> Optional[bytes]:
+    async def get_twemoji(self, emoji: str, *, svg: bool = True) -> Optional[bytes]:
         try:
-            url = f'https://twemoji.maxcdn.com/v/latest/72x72/{ord(emoji):x}.png'
+            folder = ('72x72', 'svg')[svg]
+            ext = ('png', 'svg')[svg]
+            url = f'https://twemoji.maxcdn.com/v/latest/{folder}/{ord(emoji):x}.{ext}'
 
             async with self.session.get(url) as r:
                 if r.ok:
-                    return await r.read()
+                    byt = await r.read()
+                    if svg:
+                        with Image(
+                            blob=byt, 
+                            format='svg', 
+                            width=500, 
+                            height=500, 
+                            background='none'
+                        ) as asset:
+                            return asset.make_blob('png')
+                    else:
+                        return byt
         except Exception:
             return None
 

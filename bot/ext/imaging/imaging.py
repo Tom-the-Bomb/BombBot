@@ -24,7 +24,7 @@ class Imaging(commands.Cog):
         self.bot = bot
         self._cooldown = commands.CooldownMapping.from_cooldown(1, 7, commands.BucketType.user)
 
-    async def cog_load(self) -> None:
+    async def cog_unload(self) -> None:
         from importlib import reload
         from bot.utils.imaging import pil_functions
         from bot.utils.imaging import wand_functions
@@ -227,7 +227,7 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=spin)
 
     @commands.command(name='type', aliases=('write',))
-    async def _type(self, ctx: BombContext, *, options: str = None) -> None:
+    async def _type(self, ctx: BombContext, *, text: str = None) -> None:
         """Types out the provided text in an animation"""
         MAX_SIZE = 1000
         if not text:
@@ -237,7 +237,7 @@ class Imaging(commands.Cog):
                 text = 'Specify something for me to type out next time...'
         if len(text) > MAX_SIZE:
             text = textwrap.shorten(text, width=MAX_SIZE + 3, placeholder=' ...')
-        return await do_command(ctx, text, func=type_gif, duration=20)
+        return await do_command(ctx, text, func=type_gif, duration=200)
 
     @commands.command(name='lego')
     async def _lego(self, ctx: BombContext, image: Optional[ImageConverter], *, options: LegoSize) -> None:

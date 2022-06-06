@@ -15,11 +15,11 @@ from PIL import (
     Image,
     ImageOps,
     ImageFilter,
-    ImageFont, 
     ImageDraw,
 )
 
 from ..helpers import to_thread, chunk, get_asset
+from .fonts import *
 from .image import (
     resize_pil_prop,
     get_closest_color,
@@ -59,18 +59,6 @@ def _load_mc_colors() -> dict[tuple[int, int, int], Image.Image]:
     return colors
 
 # global image "cache"
-UNICODE_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(
-    font=get_asset('GnuUnifontFull-Pm9P.ttf'), 
-    size=25,
-)
-CODE_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(
-    font=get_asset('Monaco-Linux.ttf'), 
-    size=18,
-)
-CAPTION_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(
-    font=get_asset('impact.ttf'),
-    size=30,
-)
 LEGO: Image.Image = (
     Image.open(
         get_asset('lego.png')
@@ -218,7 +206,7 @@ def minecraft(_, img: Image.Image, size: int = 70) -> Image.Image:
     return bg
 
 @to_thread
-def type_gif(_, text: str, *, duration: int = 50) -> discord.File:
+def type_gif(_, text: str, *, duration: int = 500) -> discord.File:
     text = '\n'.join(textwrap.wrap(text, width=25, replace_whitespace=False))
     x, y = UNICODE_FONT.getsize_multiline(text)
 
@@ -308,19 +296,35 @@ def image_info(ctx: BombContext, source: BytesIO) -> tuple[discord.Embed, discor
 
 @pil_image(width=300)
 def caption(_, img: Image.Image, *, text: str) -> Image.Image:
-    margin: int = 10
-    text = '\n'.join(textwrap.wrap(text, width=15, replace_whitespace=False))
+    y, margin, spacing = 10, 10, 4
+    fallback = UNICODE_FONT.font_variant(size=round(CAPTION_FONT.size * 0.9))
+
+    parts = textwrap.wrap(
+        text=text, 
+        width=15, 
+        replace_whitespace=False,
+    )
+    text = '\n'.join(parts)
 
     text_width, extra_h = pilmoji.getsize(text, font=CAPTION_FONT)
     extra_h += margin * 2
+
+    spacing = pilmoji.getsize('A', font=CAPTION_FONT)[1] + spacing
     
     if (max_width := text_width + margin * 2) >= img.width:
         img = resize_pil_prop(img, width=max_width)
 
     canvas = Image.new('RGBA', (img.width, img.height + extra_h), 'white')
-    x = img.width // 2 - text_width // 2
     with pilmoji.Pilmoji(canvas) as draw:
-        draw.text((x, margin), text, font=CAPTION_FONT, fill='black')
-        
+        for line in parts:
+            line_width = pilmoji.getsize(line, font=CAPTION_FONT)[0]
+            x = start = img.width // 2 - line_width // 2
+
+            for part, font in font_fallback(line, CAPTION_FONT, fallback):
+                draw.text((x, y), part, font=font, fill='black')
+                x += pilmoji.getsize(part, font)[0]
+            x = start
+            y += spacing
+
     canvas.paste(img, (0, extra_h))
     return canvas

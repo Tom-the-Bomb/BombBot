@@ -29,6 +29,7 @@ from PIL import (
 )
 from wand.drawing import Drawing
 from wand.image import Image as WandImage
+from wand.sequence import Sequence
 
 from .converter import ImageConverter
 
@@ -382,7 +383,8 @@ def wand_image(
                 if not pass_buf:
                     image: WandImage = WandImage(file=image)
                     image.background_color = 'none'
-                    durations = [frame.delay for frame in image.sequence]
+
+                    durations = [frame.delay for frame in Sequence(image)]
 
                     if width or height:
                         image = resize_wand_prop(image, width, height)

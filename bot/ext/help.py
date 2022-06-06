@@ -41,8 +41,8 @@ class HelpSelect(discord.ui.Select['HelpView']):
 
 class HelpView(AuthorOnlyView):
 
-    def __init__(self, help_menu: BombHelp, mapping: HelpMapping, *, timeout: float = None) -> None:
-        super().__init__(timeout=timeout)
+    def __init__(self, help_menu: BombHelp, mapping: HelpMapping, *, author: discord.User, timeout: float = None) -> None:
+        super().__init__(author=author, timeout=timeout)
 
         self.help_menu = help_menu
         self.commands_mapping = mapping
@@ -150,7 +150,7 @@ class BombHelp(commands.HelpCommand):
         embed = await self.get_home_embed(mapping)
 
         channel = self.get_destination()
-        view = HelpView(self, mapping)
+        view = HelpView(self, mapping, author=self.context.author)
 
         await channel.send(embed=embed, view=view)
 
