@@ -298,7 +298,7 @@ def image_info(ctx: BombContext, source: BytesIO) -> tuple[discord.Embed, discor
 
 @pil_image(width=300)
 def caption(_, img: Image.Image, *, text: str) -> Image.Image:
-    y, margin, spacing = 10, 10, 4
+    y, margin, spacing, offset = 10, 10, 4, 7
     fallback = UNICODE_FONT.font_variant(
         size=round(CAPTION_FONT.size * 0.8)
     )
@@ -327,8 +327,15 @@ def caption(_, img: Image.Image, *, text: str) -> Image.Image:
             for part, font in font_fallback(line, CAPTION_FONT, fallback):
                 top = y
                 if font == fallback:
-                    top = top + 7
-                draw.text((x, top), part, font=font, fill='black')
+                    top = top + offset
+                draw.text(
+                    xy=(x, top), 
+                    text=part, 
+                    font=font, 
+                    fill='black',
+                    emoji_position_offset=(0, 1),
+                    emoji_scale_factor=1.05,
+                )
                 x += pilmoji.getsize(part, font)[0]
             x = start
             y += spacing
