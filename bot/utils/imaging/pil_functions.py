@@ -309,7 +309,7 @@ def caption(_, img: Image.Image, *, text: str) -> Image.Image:
     )
     text = '\n'.join(parts)
 
-    text_width, extra_h = pilmoji.getsize(text, font=CAPTION_FONT)
+    text_width, extra_h = pilmoji.getsize(text, font=CAPTION_FONT, emoji_scale_factor=1.05)
     extra_h += margin * 2
 
     spacing = pilmoji.getsize('A', font=CAPTION_FONT)[1] + spacing
