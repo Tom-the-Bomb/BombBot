@@ -350,7 +350,7 @@ def bounce(_, img: Image.Image, *, circular: bool = True) -> list[Image.Image]:
         img = pil_circular(img, mask=PIL_CIRCLE_MASK)
 
     frames = []
-    for i in np.arange(-1, 1, 0.09):
+    for i in np.arange(-1, 1, 0.08):
         base = Image.new('RGBA', (img.width, img.height * 2), 0)
         translate = i ** 2
         base.paste(img, (0, round(img.height * translate)))
