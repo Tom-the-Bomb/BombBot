@@ -22,7 +22,9 @@ class Imaging(commands.Cog):
     """
     def __init__(self, bot: BombBot) -> None:
         self.bot = bot
-        self._cooldown = commands.CooldownMapping.from_cooldown(1, 7, commands.BucketType.user)
+        self._cooldown = commands.CooldownMapping.from_cooldown(
+            1, 7, commands.BucketType.user
+        )
 
     async def cog_unload(self) -> None:
         from importlib import reload

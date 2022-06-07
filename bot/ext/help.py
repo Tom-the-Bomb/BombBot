@@ -177,7 +177,7 @@ class Help(commands.Cog):
         self.bot = bot
 
     async def cog_load(self) -> None:
-        self.bot.help_command = BombHelp()
+        self.bot.help_command = BombHelp(verify_checks=False)
         self.bot.help_command.cog = self
 
     async def cog_unload(self) -> None:
