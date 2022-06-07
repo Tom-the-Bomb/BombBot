@@ -45,15 +45,18 @@ def _gen_invert_frame(
         )
     return img
 
-@pil_image(process_all_frames=False)
+@pil_image(width=400, process_all_frames=False)
 @to_array('RGBA', cv2.COLOR_RGBA2BGRA)
-def invert_scan(_, img: np.ndarray, *, spread: bool = True, bar_span: int = 11, fuzz_span: float = 0.8) -> list[np.ndarray]:
+def invert_scan(_, img: np.ndarray, *, spread: bool = True, bar_span: int = 12, fuzz_span: float = 0.8) -> list[np.ndarray]:
     width = img.shape[1]
     *rgb, a = cv2.split(img)
     img = cv2.merge(rgb)
     bar_size = width // bar_span
 
-    frames = [_gen_invert_frame(img.copy(), i, bar_size, fuzz_span, spread=spread) for i in range(0, width, 10)]
+    frames = [
+        _gen_invert_frame(img.copy(), i, bar_size, fuzz_span, spread=spread) 
+        for i in range(0, width, 10)
+    ]
     frames += [~f for f in frames]
     frames = [cv2.merge(cv2.split(f) + (a,)) for f in frames]
     return frames
