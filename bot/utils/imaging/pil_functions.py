@@ -64,7 +64,7 @@ LEGO: Image.Image = (
     Image.open(
         get_asset('lego.png')
     )
-    .convert('RGB')
+    .convert('RGBA')
     .resize((30, 30), Image.ANTIALIAS)
 )
 PAINT_MASK: Image.Image = (
@@ -175,7 +175,7 @@ def spin(_, img: Image.Image) -> list[Image.Image]:
     return frames
 
 @pil_image(process_all_frames=False)
-def lego(_, img: Image.Image, size: int = 50) -> Image.Image:
+def lego(_, img: Image.Image, size: int = 40) -> Image.Image:
     img = resize_pil_prop(img, height=size, resampling=Image.BILINEAR, process_gif=False)
     with Image.new('RGBA', (img.width * LEGO.width, img.height * LEGO.height), 0) as bg:
         x, y = 0, 0

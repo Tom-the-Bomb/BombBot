@@ -53,10 +53,10 @@ class CharcoalIntensity(FlagConverter):
     intensity: Range[float, 0.0, 5.0] = 1.5
 
 class LegoSize(FlagConverter):
-    """• `size:` an :integer: between `1` and `60` (by default `50`)
+    """• `size:` an :integer: between `1` and `60` (by default `40`)
     Specifies the number of bricks to use for the generated image
     """
-    size: Range[int, 1, 60] = 50
+    size: Range[int, 1, 60] = 40
 
 class BlockSize(FlagConverter):
     """• `size:` an :integer: between `1` and `110` (by default `70`)

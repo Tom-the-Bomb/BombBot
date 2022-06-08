@@ -100,9 +100,9 @@ def _calc_colorize(color: int, new: int) -> int:
     else:
         return new - 133 + color
 
-def pil_colorize(img: Image.Image, color: tuple[int, int, int]) -> Image.Image:
+def pil_colorize(img: Image.Image, color: tuple[int, int, int, int]) -> Image.Image:
 
-    red, green, blue = img.split()
+    red, green, blue, alpha = img.split()
     red = red.point(
         lambda col: _calc_colorize(col, color[0])
     )
@@ -112,8 +112,11 @@ def pil_colorize(img: Image.Image, color: tuple[int, int, int]) -> Image.Image:
     blue = blue.point(
         lambda col: _calc_colorize(col, color[2])
     )
+    alpha = alpha.point(
+        lambda col: _calc_colorize(col, color[3])
+    )
 
-    return Image.merge(img.mode, (red, green, blue))
+    return Image.merge(img.mode, (red, green, blue, alpha))
 
 def wand_circle_mask(width: int, height: int) -> WandImage:
     mask = WandImage(
