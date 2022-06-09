@@ -277,8 +277,9 @@ class Imaging(commands.Cog):
     @commands.command(name='image-info', aliases=('info', 'imginfo', 'img-info', 'iminfo'))
     async def _image_info(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Displays basic information about the provided image"""
-        embed, *files = await image_info(ctx, image)
-        await ctx.send(embed=embed, files=files)
+        async with ctx.loading():
+            embed, *files = await image_info(ctx, image)
+            await ctx.send(embed=embed, files=files)
 
     @commands.command(name='caption')
     async def _caption(self, ctx: BombContext, image: Optional[ImageConverter], *, text: str) -> None:
