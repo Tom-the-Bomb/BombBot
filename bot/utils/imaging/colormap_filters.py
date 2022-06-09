@@ -6,6 +6,7 @@ import cv2
 import discord
 
 from ..helpers import AuthorOnlyView
+from ..loading import Loading
 from .image import pil_image, to_array
 
 if TYPE_CHECKING:
@@ -52,17 +53,23 @@ class ColorMapSelect(discord.ui.Select['ColorMapView']):
 
     async def callback(self, interaction: discord.Interaction) -> None:
         colormap = self.values[0]
-        await interaction.response.defer()
 
-        output_file: discord.File = await apply_color_map(
-            self.context, 
-            self.argument, 
-            colormap=colormap
-        )
-        embed = discord.Embed(color=self.context.bot.EMBED_COLOR)
-        embed.set_image(url=f'attachment://{output_file.filename}')
+        async with self.context.typing():
+            await interaction.response.edit_message(content=Loading.MESSAGE)
 
-        await interaction.edit_original_message(embed=embed, attachments=[output_file])
+            output_file: discord.File = await apply_color_map(
+                self.context, 
+                self.argument, 
+                colormap=colormap
+            )
+            embed = discord.Embed(color=self.context.bot.EMBED_COLOR)
+            embed.set_image(url=f'attachment://{output_file.filename}')
+
+            await interaction.edit_original_message(
+                content=None, 
+                embed=embed, 
+                attachments=[output_file]
+            )
 
 class ColorMapView(AuthorOnlyView):
 
