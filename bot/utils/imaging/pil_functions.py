@@ -18,7 +18,12 @@ from PIL import (
     ImageDraw,
 )
 
-from ..helpers import to_thread, chunk, get_asset
+from ..helpers import (
+    to_thread, 
+    chunk, 
+    get_asset, 
+    truncate,
+)
 from .fonts import *
 from .image import (
     resize_pil_prop,
@@ -279,6 +284,7 @@ def image_info(ctx: BombContext, source: BytesIO) -> tuple[discord.Embed, discor
                 embed.description += f'{key.title().replace("_", "-")}: {value}\n'
             except Exception:
                 continue
+        embed.description = truncate(embed.description, limit=5997)
         embed.description += '\n```'
 
         if palette := img.quantize(colors=5, method=Image.Quantize.FASTOCTREE).getpalette():

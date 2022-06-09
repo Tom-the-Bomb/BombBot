@@ -53,9 +53,9 @@ def to_thread(func: Callable[P, T]) -> Callable[P, Awaitable[T]]:
 
     return wrapper
 
-def truncate(content: str, limit: int = 2000) -> str:
+def truncate(content: str, limit: int = 2000, *, placeholder: str = '...') -> str:
     if len(content) > limit:
-        return content[:1997] + '...'
+        return content[:limit - len(placeholder)] + placeholder
     else:
         return content
 
