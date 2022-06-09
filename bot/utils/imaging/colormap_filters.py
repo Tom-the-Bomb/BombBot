@@ -60,7 +60,7 @@ class ColorMapSelect(discord.ui.Select['ColorMapView']):
             output_file: discord.File = await apply_color_map(
                 self.context, 
                 self.argument, 
-                colormap=colormap
+                colormap=colormap,
             )
             embed = discord.Embed(color=self.context.bot.EMBED_COLOR)
             embed.set_image(url=f'attachment://{output_file.filename}')
@@ -68,7 +68,7 @@ class ColorMapSelect(discord.ui.Select['ColorMapView']):
             await interaction.edit_original_message(
                 content=None, 
                 embed=embed, 
-                attachments=[output_file]
+                attachments=[output_file],
             )
 
 class ColorMapView(AuthorOnlyView):
