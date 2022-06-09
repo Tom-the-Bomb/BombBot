@@ -21,8 +21,8 @@ class HelpSelect(discord.ui.Select['HelpView']):
     def __init__(self, mapping: HelpMapping) -> None:
 
         options = [
-            discord.SelectOption(label=cog.qualified_name) for cog in 
-            mapping.keys() if cog
+            discord.SelectOption(label=cog.qualified_name) for cog, cmds in 
+            mapping.items() if cog and cmds
         ]
         super().__init__(
             placeholder='Select a category to view',
@@ -83,8 +83,6 @@ class BombHelp(commands.HelpCommand):
             f'Use `{ctx.clean_prefix}{self.invoked_with} <command>` for more information on a specific command.\n\n'
         )
         for cog, cmds in mapping.items():
-            cmds = await self.filter_commands(cmds)
-
             if cog and cmds:
                 embed.description += f'**{cog.qualified_name}**\n{cog.description}\n\n'
         return embed
@@ -93,7 +91,7 @@ class BombHelp(commands.HelpCommand):
         embed = self.get_base_embed()
         embed.title = cog.qualified_name
 
-        cmds = await self.filter_commands(mapping.get(cog), sort=True)
+        cmds = mapping.get(cog)
         description = '` | `'.join([cmd.qualified_name for cmd in cmds]) or 'none'
         embed.description = f'{cog.description}\n\n`{description}`'
 
@@ -107,7 +105,7 @@ class BombHelp(commands.HelpCommand):
         )
 
         string = f'• `{name}` {annotation}'
-        if param.default != inspect._empty:
+        if param.default is not inspect._empty:
             string += f' (by default {param.default}'
         return string
 
@@ -146,6 +144,11 @@ class BombHelp(commands.HelpCommand):
         return embed
 
     async def send_bot_help(self, mapping: HelpMapping) -> None:
+        mapping: HelpMapping = {
+            cog: await self.filter_commands(cmds, sort=True)
+            for cog, cmds in mapping.items()
+        }
+
         embed = await self.get_home_embed(mapping)
 
         channel = self.get_destination()
