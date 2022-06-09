@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import ClassVar, Optional, Mapping, TypeAlias, TYPE_CHECKING
-from datetime import datetime as dt
 import inspect
 
 import discord
@@ -66,7 +65,7 @@ class BombHelp(commands.HelpCommand):
         ctx = self.context
         embed = discord.Embed(
             description='',
-            timestamp=dt.utcnow(),
+            timestamp=discord.utils.utcnow(),
             color=ctx.bot.EMBED_COLOR,
         )
         embed.set_thumbnail(url=ctx.bot.user.display_avatar.url)
