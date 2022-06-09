@@ -8,6 +8,7 @@ from discord.ext import commands
 from bot.utils.imaging import do_command, ImageConverter
 
 from bot.utils.imaging.flags import *
+from bot.utils.imaging.colormap_filters import ColorMapView
 from bot.utils.imaging.pil_functions import *
 from bot.utils.imaging.wand_functions import *
 from bot.utils.imaging.cv_functions import *
@@ -28,10 +29,12 @@ class Imaging(commands.Cog):
 
     async def cog_unload(self) -> None:
         from importlib import reload
+        from bot.utils.imaging import colormap_filters
         from bot.utils.imaging import pil_functions
         from bot.utils.imaging import wand_functions
         from bot.utils.imaging import cv_functions
 
+        reload(colormap_filters)
         reload(pil_functions)
         reload(wand_functions)
         reload(cv_functions)
@@ -288,6 +291,11 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=bounce)
 
     # opencv-python functions
+
+    @commands.command(name='filter', aliases=('colormap', 'applycolormap'))
+    async def _filter(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+        """Applies a colormap filter onto an image"""
+        await ctx.send(view=ColorMapView(ctx, image))
 
     @commands.command(name='turnevil', aliases=('evil', 'invertscan', 'scaninvert', 'scan-invert', 'invert-scan'))
     async def _turn_evil(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
