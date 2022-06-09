@@ -142,6 +142,11 @@ class Imaging(commands.Cog):
         """Makes a tiled floor with the provided image"""
         return await do_command(ctx, image, func=floor)
 
+    @commands.group(name='morewaves', aliases=('morewavy', 'increasing-waves', 'wavegif'))
+    async def _increasing_wave(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+        """Makes the image more wavy by each frame"""
+        return await do_command(ctx, image, func=increasing_wave)
+
     @commands.command(name='gallery')
     async def _gallery(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Returns a sliding gallery / conveyor belt type thing with the provided image"""

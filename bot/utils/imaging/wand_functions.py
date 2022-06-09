@@ -35,6 +35,7 @@ __all__: tuple[str, ...] = (
     'solarize',
     'arc',
     'floor',
+    'increasing_wave',
     'slide',
     'bulge',
     'swirl',
@@ -172,6 +173,23 @@ def floor(_, img: I) -> I:
         )
     )
     return img
+
+@wand_image()
+def increasing_wave(_, img: Image) -> Image:
+    base = Image()
+
+    for i in range(4, 30, 2):
+        with img.clone() as clone:
+            clone.wave(
+                amplitude=img.height / 24, 
+                wave_length=img.width / i,
+            )
+            clone.dispose = 'background'
+            base.sequence.append(clone)
+        del clone
+
+    base.sequence.extend(reversed(base.sequence))
+    return base
 
 @wand_image(width=300, process_all_frames=False)
 def slide(_, img: Image) -> Image:
