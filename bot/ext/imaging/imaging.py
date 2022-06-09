@@ -17,17 +17,19 @@ if TYPE_CHECKING:
     from bot.bot import BombBot
     from bot.utils.context import BombContext
 
+
 class Imaging(commands.Cog):
     """Contains numerous image processing commands
-    utilizing `ImageMagick`, `pillow` and `OpenCV`
+    utilizing `ImageMagick`, `pillow` and `OpenCV`...
     """
     def __init__(self, bot: BombBot) -> None:
         self.bot = bot
-        self._cooldown = commands.CooldownMapping.from_cooldown(
-            1, 7, commands.BucketType.user
+        self._cooldown: commands.CooldownMapping = commands.CooldownMapping.from_cooldown(
+            rate=1, per=7, type=commands.BucketType.user,
         )
 
     async def cog_unload(self) -> None:
+        """Reloads the respective imaging modules on extension reload"""
         from importlib import reload
         from bot.utils.imaging import colormap_filters
         from bot.utils.imaging import pil_functions
