@@ -27,6 +27,10 @@ def apply_color_map(_, img: ndarray, *, colormap: str) -> ndarray:
         colormap=getattr(cv2, colormap, 0)
     )
 
+def _humanize_colormap(colormap: str) -> str:
+    colormap = colormap.removeprefix('COLORMAP_')
+    return colormap.capitalize().replace('_', '-')
+
 class ColorMapSelect(discord.ui.Select['ColorMapView']):
 
     def __init__(
@@ -41,7 +45,7 @@ class ColorMapSelect(discord.ui.Select['ColorMapView']):
 
         options = [
             discord.SelectOption(
-                label=colormap.removeprefix('COLORMAP_').lower().replace('_', '-'),
+                label=_humanize_colormap(colormap),
                 value=colormap,
             )
             for colormap in colormaps
@@ -55,18 +59,22 @@ class ColorMapSelect(discord.ui.Select['ColorMapView']):
         colormap = self.values[0]
 
         async with self.context.typing():
-            await interaction.response.edit_message(content=Loading.MESSAGE)
+            embed = discord.Embed(
+                description=Loading.MESSAGE, 
+                color=self.context.bot.EMBED_COLOR,
+            )
+            await interaction.response.edit_message(embed=embed, attachments=[])
 
             output_file: discord.File = await apply_color_map(
                 self.context, 
                 self.argument, 
                 colormap=colormap,
             )
-            embed = discord.Embed(color=self.context.bot.EMBED_COLOR)
+
+            embed.description = f'Applied `{_humanize_colormap(colormap)}` to provided image.'
             embed.set_image(url=f'attachment://{output_file.filename}')
 
             await interaction.edit_original_message(
-                content=None, 
                 embed=embed, 
                 attachments=[output_file],
             )
