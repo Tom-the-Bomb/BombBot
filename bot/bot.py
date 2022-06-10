@@ -140,9 +140,13 @@ class BombBot(commands.Bot):
 
     async def get_twemoji(self, emoji: str, *, svg: bool = True) -> Optional[bytes]:
         try:
-            folder = ('72x72', 'svg')[svg]
-            ext = ('png', 'svg')[svg]
-            url = f'https://twemoji.maxcdn.com/v/latest/{folder}/{ord(emoji):x}.{ext}'
+            if len(emoji) > 1:
+                svg = False
+                url = f'https://emojicdn.elk.sh/{emoji}?style=twitter'
+            else:
+                folder = ('72x72', 'svg')[svg]
+                ext = ('png', 'svg')[svg]
+                url = f'https://twemoji.maxcdn.com/v/latest/{folder}/{ord(emoji):x}.{ext}'
 
             async with self.session.get(url) as r:
                 if r.ok:
