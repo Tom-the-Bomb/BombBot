@@ -13,7 +13,7 @@ from aiohttp import MultipartWriter, ClientSession
 from wand.image import Image
 
 from .utils.context import BombContext
-from .utils.imaging.converter import ImageTooLarge, InvalidColor
+from .utils.imaging import ImageTooLarge, InvalidColor, svg_to_png
 
 class Config(TypedDict):
     TOKEN: str
@@ -152,14 +152,7 @@ class BombBot(commands.Bot):
                 if r.ok:
                     byt = await r.read()
                     if svg:
-                        with Image(
-                            blob=byt, 
-                            format='svg', 
-                            width=500, 
-                            height=500, 
-                            background='none'
-                        ) as asset:
-                            return asset.make_blob('png')
+                        return await svg_to_png(byt)
                     else:
                         return byt
         except Exception:

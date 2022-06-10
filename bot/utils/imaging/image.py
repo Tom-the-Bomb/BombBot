@@ -33,6 +33,7 @@ from wand.image import Image as WandImage
 from wand.sequence import Sequence
 
 from .converter import ImageConverter
+from ..helpers import to_thread as to_thread_deco
 
 if TYPE_CHECKING:
     from ..context import BombContext
@@ -58,6 +59,7 @@ if TYPE_CHECKING:
     Duration: TypeAlias = list[int] | int | None
 
 __all__: tuple[str, ...] = (
+    'svg_to_png',
     'get_closest_color',
     'pil_colorize',
     'wand_circle_mask',
@@ -77,6 +79,23 @@ __all__: tuple[str, ...] = (
 )
 
 FORMATS: Final[tuple[str, ...]] = ('png', 'gif')
+
+
+@to_thread_deco
+def svg_to_png(
+    svg_bytes: bytes, 
+    *, 
+    width: int = 500, 
+    height: int = 500,
+) -> bytes:
+    with WandImage(
+        blob=svg_bytes, 
+        format='svg',
+        width=width, 
+        height=height, 
+        background='none',
+    ) as asset:
+        return asset.make_blob('png')
 
 
 def get_closest_color(px: tuple[int, ...], sample: list | np.ndarray, *, reverse: bool = False) -> tuple[int, ...]:
