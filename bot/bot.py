@@ -10,10 +10,13 @@ import jishaku
 import discord
 from discord.ext import commands
 from aiohttp import MultipartWriter, ClientSession
-from wand.image import Image
 
 from .utils.context import BombContext
-from .utils.imaging import ImageTooLarge, InvalidColor, svg_to_png
+from .utils.imaging import (
+    ImageTooLarge, 
+    InvalidColor, 
+    svg_to_png,
+)
 
 class Config(TypedDict):
     TOKEN: str
