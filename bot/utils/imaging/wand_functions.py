@@ -47,6 +47,7 @@ __all__: tuple[str, ...] = (
     'spread_cards',
     'cube',
     'spread_out',
+    'magik',
 )
 
 WAND_CIRCLE_MASK: Image = wand_circle_mask(1000, 1000)
@@ -359,3 +360,19 @@ def spread_out(_, img: Image) -> Image:
         del clone
     base.sequence.extend(reversed(base.sequence))
     return base
+
+@wand_image(width=500, process_all_frames=False)
+def magik(_, img: Image, *, static: bool = False) -> Image:
+    if static:
+        img.liquid_rescale(img.width // 2, img.height // 2, i, i)
+        return img
+    else:
+        base = Image()
+        for i in range(2, 10, 1):
+            with img.clone() as clone:
+                clone.liquid_rescale(img.width // 2, img.height // 2, i, i)
+                clone.dispose = 'background'
+                base.sequence.append(clone)
+            del clone
+        base.sequence.extend(reversed(base.sequence))
+        return base

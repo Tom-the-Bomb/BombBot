@@ -177,17 +177,17 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=fisheye, shade=not shade)
 
     @commands.command(name='bomb')
-    async def _bomb(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
+    async def _bomb(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Returns a GIF with an explosion animation extended onto the provided image"""
         return await do_command(ctx, image, func=bomb)
 
     @commands.command(name='cycle-colors', aliases=('cycle',))
-    async def _cycle_colors(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
+    async def _cycle_colors(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Cycle's the provided image's color mapping"""
         return await do_command(ctx, image, func=cycle_colors)
 
     @commands.command(name='huerotate', aliases=('rotatehue',))
-    async def _hue_rotate(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
+    async def _hue_rotate(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """rotates around and changes the hue of the provided image"""
         return await do_command(ctx, image, func=huerotate)
 
@@ -197,19 +197,24 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=solarize, threshold=options.threshold, channel=options.channel)
     
     @commands.command(name='spread-cards', aliases=('cards', 'spreadcards'))
-    async def _spread_cards(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
+    async def _spread_cards(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Spreads the provided image out like playing cards"""
         return await do_command(ctx, image, func=spread_cards)
 
     @commands.command(name='cube')
-    async def _cube(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
+    async def _cube(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Wraps the provided image on a cube"""
         return await do_command(ctx, image, func=cube)
 
     @commands.command(name='spreadout', aliases=('spread',))
-    async def _spreadout(self, ctx: BombContext, image: Optional[ImageConverter]) -> None:
+    async def _spreadout(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Wraps the provided image on a cube"""
         return await do_command(ctx, image, func=spread_out)
+
+    @commands.command(name='magik')
+    async def _magik(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+        """magik, cursed"""
+        return await do_command(ctx, image, func=magik)
 
     # pil functions
 
