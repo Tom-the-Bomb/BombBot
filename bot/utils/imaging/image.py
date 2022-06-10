@@ -9,9 +9,11 @@ from typing import (
     Concatenate,
     Awaitable,
     ParamSpec, 
-    TypeVar, 
+    TypeVar,
+    Iterable,
     TYPE_CHECKING,
 )
+from itertools import cycle
 from io import BytesIO
 from math import ceil
 import asyncio
@@ -38,6 +40,8 @@ from ..helpers import to_thread as to_thread_deco
 if TYPE_CHECKING:
     from ..context import BombContext
 
+    IT = TypeVar('IT')
+
     P = ParamSpec('P')
     C = TypeVar('C', BombContext)
     I = TypeVar('I', Image.Image)
@@ -60,6 +64,7 @@ if TYPE_CHECKING:
 
 __all__: tuple[str, ...] = (
     'svg_to_png',
+    'process_gif',
     'get_closest_color',
     'pil_colorize',
     'wand_circle_mask',
@@ -96,6 +101,18 @@ def svg_to_png(
         background='none',
     ) as asset:
         return asset.make_blob('png')
+
+
+def process_gif(
+    img: WandImage | Image.Image, 
+    iterable: Iterable[IT],
+) -> Iterable[tuple[WandImage | Image.Image, IT]]:
+
+    if isinstance(img, WandImage):
+        seq = img.sequence
+    else:
+        seq = ImageSequence.Iterator(img)
+    return zip(cycle(seq), iterable)
 
 
 def get_closest_color(px: tuple[int, ...], sample: list | np.ndarray, *, reverse: bool = False) -> tuple[int, ...]:
