@@ -42,7 +42,7 @@ class ColorConverter(commands.Converter):
 class DefaultEmojiConverter(commands.Converter):
 
     async def convert(self, ctx: BombContext, argument: str) -> bytes:
-        emoji = await ctx.bot.get_twemoji(argument)
+        emoji = await ctx.bot.get_default_emoji(argument)
         
         if not emoji:
             raise commands.BadArgument('Invalid Emoji')

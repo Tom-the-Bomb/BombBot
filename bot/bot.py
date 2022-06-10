@@ -138,7 +138,7 @@ class BombBot(commands.Bot):
                 paste = 'https://mystb.in/' + data['pastes'][0]['id']
                 return paste
 
-    async def get_twemoji(self, emoji: str, *, svg: bool = True) -> Optional[bytes]:
+    async def get_default_emoji(self, emoji: str, *, svg: bool = True) -> Optional[bytes]:
         try:
             if len(emoji) > 1:
                 svg = False
