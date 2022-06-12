@@ -56,9 +56,9 @@ class HelpView(AuthorOnlyView):
 class BombHelp(commands.HelpCommand):
     context: BombContext
     _DOC_FORMATS_ENV: ClassVar[dict[str, str]] = {
-        ':integer:': '[integer](https://en.wikipedia.org/wiki/Integer)',
-        ':decimal:': '[decimal](https://en.wikipedia.org/wiki/Decimal)',
-        ':css:': '[css syntax](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value)'
+        'integer': '[integer](https://en.wikipedia.org/wiki/Integer)',
+        'decimal': '[decimal](https://en.wikipedia.org/wiki/Decimal)',
+        'css': '[css syntax](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value)'
     }
 
     def get_base_embed(self) -> discord.Embed:
@@ -118,9 +118,7 @@ class BombHelp(commands.HelpCommand):
         if flags := command.clean_params.get('options'):
             if issubclass(converter := flags.converter, commands.FlagConverter):
                 doc = inspect.getdoc(converter).strip() or '-'
-
-                for key, value in self._DOC_FORMATS_ENV.items():
-                    doc = doc.replace(key, value)
+                doc = doc.format(**self._DOC_FORMATS_ENV)
                 return doc
 
     def get_command_embed(self, command: commands.Command) -> discord.Embed:
@@ -136,7 +134,7 @@ class BombHelp(commands.HelpCommand):
             embed.add_field(name='Parameters', value=self.get_param_doc(params))
         
         if flags := self.get_flag_doc(command):
-            embed.add_field(name='Options', value=flags or '-', inline=False)
+            embed.add_field(name='🚩 Flags', value=flags or '-', inline=False)
 
         if isinstance(command, commands.Group):
             subcommands = '`\n`'.join(cmd.qualified_name for cmd in command.commands) or 'none'
