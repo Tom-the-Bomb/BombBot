@@ -170,7 +170,7 @@ def spin(_, img: Image.Image) -> list[Image.Image]:
     frames += reversed(frames)
     return frames
 
-@pil_image(process_all_frames=False)
+@pil_image()
 def minecraft(_, img: Image.Image, size: int = 70) -> Image.Image:
     N = 16
     img = resize_pil_prop(img, height=size, resampling=Image.BILINEAR, process_gif=False)
