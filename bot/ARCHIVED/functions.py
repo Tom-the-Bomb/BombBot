@@ -2,6 +2,18 @@
 import numpy as np
 from PIL import Image
 
+from ..utils.helpers import get_asset
+from ..utils.imaging import pil_image, resize_pil_prop
+
+
+# for old lego function
+LEGO: Image.Image = (
+    Image.open(
+        get_asset('lego.png')
+    )
+    .convert('RGBA')
+    .resize((30, 30), Image.ANTIALIAS)
+)
 
 def colorize_lego_band(band: np.ndarray, color: int) -> np.ndarray:
     """an alternative but slightly slower algorithm for colorizing lego bands"""
@@ -44,3 +56,19 @@ def pil_colorize(img: Image.Image, color: tuple[int, int, int, int]) -> Image.Im
     )
 
     return Image.merge(img.mode, (red, green, blue, alpha))
+
+@pil_image(process_all_frames=False)
+def lego(_, img: Image.Image, size: int = 40) -> Image.Image:
+    """Old lego function using pil, was slow."""
+    img = resize_pil_prop(img, height=size, resampling=Image.BILINEAR, process_gif=False)
+    with Image.new('RGBA', (img.width * LEGO.width, img.height * LEGO.height), 0) as bg:
+        x, y = 0, 0
+        for row in np.asarray(img.convert('RGBA')):
+            for px in row:
+                if px[-1] != 0:
+                    piece = pil_colorize(LEGO, px)
+                    bg.paste(piece, (x, y))
+                x += LEGO.width
+            x = 0
+            y += LEGO.height
+        return bg
