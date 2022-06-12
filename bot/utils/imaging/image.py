@@ -66,13 +66,13 @@ __all__: tuple[str, ...] = (
     'svg_to_png',
     'process_gif',
     'get_closest_color',
-    'pil_colorize',
     'wand_circle_mask',
     'pil_circle_mask',
     'wand_circular',
     'pil_circular',
     'resize_pil_prop',
     'resize_wand_prop',
+    'resize_cv_prop',
     'process_wand_gif',
     'wand_save_list',
     'save_wand_image',
@@ -127,33 +127,6 @@ def get_closest_color(px: tuple[int, ...], sample: list | np.ndarray, *, reverse
     idx = np.where(distances == fn(distances))
     return tuple(sample[idx][0])
 
-
-def _calc_colorize(color: int, new: int) -> int:
-    if color < 33:
-        return new - 100
-    elif color > 233:
-        return new + 100
-    else:
-        return new - 133 + color
-
-def pil_colorize(img: Image.Image, color: tuple[int, int, int, int]) -> Image.Image:
-
-    red, green, blue, alpha = img.split()
-    red = red.point(
-        lambda col: _calc_colorize(col, color[0])
-    )
-    green = green.point(
-        lambda col: _calc_colorize(col, color[1])
-    )
-    blue = blue.point(
-        lambda col: _calc_colorize(col, color[2])
-    )
-    alpha = alpha.point(
-        lambda col: _calc_colorize(col, color[3])
-    )
-
-    return Image.merge(img.mode, (red, green, blue, alpha))
-
 def wand_circle_mask(width: int, height: int) -> WandImage:
     mask = WandImage(
         width=width, height=height, 
@@ -202,15 +175,20 @@ def pil_circular(img: Image.Image, *, mask: Optional[Image.Image] = None) -> Ima
     return out
 
 def _get_prop_size(
-    image: Image.Image | WandImage,
+    image: Image.Image | WandImage | np.ndarray,
     width: Optional[int] = None, 
     height: Optional[int] = None,
 ) -> tuple[int, int]:
 
+    if isinstance(image, (Image.Image, WandImage)):
+        w, h = image.size
+    else:
+        h, w, *_ = image.shape
+
     if width:
-        height = ceil((width / image.width) * image.height)
+        height = ceil((width / w) * h)
     elif height:
-        width = ceil((height / image.height) * image.width)
+        width = ceil((height / h) * w)
     else:
         width, height = image.size
 
@@ -267,6 +245,19 @@ def resize_wand_prop(
 
     image.resize(width, height, filter=resampling)
     return image
+
+def resize_cv_prop(
+    image: np.ndarray,
+    width: Optional[int] = None,
+    height: Optional[int] = None, 
+    *,
+    resampling: int = cv2.INTER_LANCZOS4,
+) -> np.ndarray:
+
+    if not (width and height):
+        width, height = _get_prop_size(image, width, height)
+
+    return cv2.resize(image, (width, height), interpolation=resampling)
 
 
 def wand_save_list(

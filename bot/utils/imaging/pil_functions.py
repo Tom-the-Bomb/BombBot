@@ -28,7 +28,6 @@ from .fonts import *
 from .image import (
     resize_pil_prop,
     get_closest_color,
-    pil_colorize, 
     pil_image,
     pil_circle_mask,
     pil_circular,
@@ -44,7 +43,6 @@ __all__: tuple[str, ...] = (
     'mirror',
     'contour',
     'spin',
-    'lego',
     'minecraft',
     'type_gif',
     'lines',
@@ -65,13 +63,6 @@ def _load_mc_colors() -> dict[tuple[int, int, int], Image.Image]:
     return colors
 
 # global image "cache"
-LEGO: Image.Image = (
-    Image.open(
-        get_asset('lego.png')
-    )
-    .convert('RGBA')
-    .resize((30, 30), Image.ANTIALIAS)
-)
 PAINT_MASK: Image.Image = (
     Image.open(
         get_asset('paint_mask.png')
@@ -178,21 +169,6 @@ def spin(_, img: Image.Image) -> list[Image.Image]:
         
     frames += reversed(frames)
     return frames
-
-@pil_image(process_all_frames=False)
-def lego(_, img: Image.Image, size: int = 40) -> Image.Image:
-    img = resize_pil_prop(img, height=size, resampling=Image.BILINEAR, process_gif=False)
-    with Image.new('RGBA', (img.width * LEGO.width, img.height * LEGO.height), 0) as bg:
-        x, y = 0, 0
-        for row in np.asarray(img.convert('RGBA')):
-            for px in row:
-                if px[-1] != 0:
-                    piece = pil_colorize(LEGO, px)
-                    bg.paste(piece, (x, y))
-                x += LEGO.width
-            x = 0
-            y += LEGO.height
-        return bg
 
 @pil_image(process_all_frames=False)
 def minecraft(_, img: Image.Image, size: int = 70) -> Image.Image:

@@ -6,12 +6,19 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from .image import get_closest_color, pil_image, to_array
+from ..helpers import get_asset
+from .image import (
+    resize_cv_prop,
+    get_closest_color, 
+    pil_image, 
+    to_array,
+)
 
 if TYPE_CHECKING:
     from wand.color import Color
 
 __all__: tuple[str, ...] = (
+    'lego',
     'invert_scan',
     'cv_floor',
     'cartoon',
@@ -23,6 +30,8 @@ __all__: tuple[str, ...] = (
 
 BW: Final[np.ndarray] = np.array([[255, 255, 255], [0, 0, 0]])
 
+LEGO: np.ndarray = cv2.imread(get_asset('lego.png'))
+LEGO = cv2.resize(LEGO, (30, 30), interpolation=cv2.INTER_LANCZOS4)
 
 def _gen_invert_frame(
     img: np.ndarray, 
@@ -44,6 +53,44 @@ def _gen_invert_frame(
             .effect_spread(round(bar_size * fuzz_span))
         )
     return img
+
+def _colorize_lego_band(band: np.ndarray, color: int) -> np.ndarray:
+    band = band.astype(np.float32)
+    new = color - 133 + band
+    new[band < 33] = color - 100
+    new[band > 233] = color + 100
+    new[new < 0] = 0
+    new[new > 255] = 255
+    return new.astype(np.uint8)
+
+def _colorize_lego(img: np.ndarray, color: tuple[int, int, int, int]) -> np.ndarray:
+    red, green, blue = cv2.split(img)
+    return cv2.merge((
+        _colorize_lego_band(red, color[0]),
+        _colorize_lego_band(green, color[1]),
+        _colorize_lego_band(blue, color[2]),
+        np.full((30, 30), color[3], dtype=np.uint8),
+    ))
+
+@pil_image()
+@to_array('RGBA', cv2.COLOR_RGBA2BGRA)
+def lego(_, img: np.ndarray, *, size: int = 40) -> np.ndarray:
+    img = resize_cv_prop(img, 
+        height=size, 
+        resampling=cv2.INTER_LINEAR,
+    )
+    h, w, *_ = img.shape
+
+    base = np.zeros((h * 30, w * 30, 4), dtype=np.uint8)
+    x, y = 0, 0
+    for row in img:
+        for px in row:
+            if px[-1] != 0:
+                base[y:y + 30, x:x + 30] = _colorize_lego(LEGO, px)
+            x += 30
+        x = 0
+        y += 30
+    return base
 
 @pil_image(width=400, process_all_frames=False)
 @to_array('RGBA', cv2.COLOR_RGBA2BGRA)
