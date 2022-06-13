@@ -120,9 +120,12 @@ async def run_threaded(
         raise ImageProcessTimeout(timeout) from exc
 
 def check_frame_amount(img: Image.Image | WandImage) -> None:
-    frames = getattr(img, 'n_frames', 1) if isinstance(img, Image.Image) else img.sequence
-    if (n := len(frames)) > MAX_FRAMES:
-        raise TooManyFrames(n, MAX_FRAMES)
+    if isinstance(img, Image.Image):
+        n_frames = getattr(img, 'n_frames', 1)
+    else:
+        n_frames = len(img.sequence)
+    if n_frames > MAX_FRAMES:
+        raise TooManyFrames(n_frames, MAX_FRAMES)
 
 def process_gif(
     img: WandImage | Image.Image, 
