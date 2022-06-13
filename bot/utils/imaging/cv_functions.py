@@ -77,7 +77,7 @@ def _colorize_lego(img: np.ndarray, color: tuple[int, int, int, int]) -> np.ndar
 def lego(_, img: np.ndarray, *, size: int = 40) -> np.ndarray:
     img = resize_cv_prop(img, 
         height=size, 
-        resampling=cv2.INTER_LINEAR,
+        resampling=cv2.INTER_AREA,
     )
     h, w, *_ = img.shape
 
