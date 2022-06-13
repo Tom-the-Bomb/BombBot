@@ -12,11 +12,8 @@ from discord.ext import commands
 from aiohttp import MultipartWriter, ClientSession
 
 from .utils.context import BombContext
-from .utils.imaging import (
-    ImageTooLarge, 
-    InvalidColor, 
-    svg_to_png,
-)
+from .utils.imaging import BaseImageException, svg_to_png
+
 
 class Config(TypedDict):
     TOKEN: str
@@ -163,7 +160,7 @@ class BombBot(commands.Bot):
 
     async def on_command_error(self, ctx: BombContext, error: Exception) -> Optional[discord.Message]:
 
-        IGNORE_EXC = (
+        IGNORE_EXC: tuple[type[Exception]] = (
             commands.CommandNotFound,
             commands.NotOwner,
         )
@@ -185,8 +182,8 @@ class BombBot(commands.Bot):
         if ctx.command:
             ctx.command.reset_cooldown(ctx)
 
-        if isinstance(error, (ImageTooLarge, InvalidColor)):
-            return await ctx.send(error.args[0])
+        if isinstance(error, BaseImageException):
+            return await ctx.send(error.message)
 
         elif isinstance(error, commands.BadLiteralArgument):
             return await ctx.send(f"input value for `{error.param.name}` must be either ({'or'.join(error.literals)}) or nothing")

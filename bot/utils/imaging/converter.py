@@ -7,6 +7,7 @@ import discord
 from discord.ext import commands
 from wand.color import Color
 
+from .exceptions import InvalidColor, ImageTooLarge
 from ..helpers import Regexes
 
 if TYPE_CHECKING:
@@ -17,19 +18,11 @@ if TYPE_CHECKING:
 
 
 __all__: tuple[str, ...] = (
-    'ImageTooLarge',
-    'InvalidColor',
     'ColorConverter',
     'DefaultEmojiConverter',
     'UrlConverter',
     'ImageConverter',
 )
-
-class ImageTooLarge(commands.CheckFailure):
-    pass
-
-class InvalidColor(commands.BadArgument):
-    pass
 
 class ColorConverter(commands.Converter):
 
@@ -37,7 +30,7 @@ class ColorConverter(commands.Converter):
         try:
             return Color(argument.strip())
         except ValueError as exc:
-            raise InvalidColor(f'`{argument}` is not a valid color') from exc
+            raise InvalidColor(argument) from exc
 
 class DefaultEmojiConverter(commands.Converter):
 
@@ -114,13 +107,9 @@ class ImageConverter(commands.Converter):
     )
 
     def check_size(self, byt: bytes, *, max_size: int = 15_000_000) -> None:
-        MIL = 1_000_000
         if (size := byt.__sizeof__()) > max_size:
             del byt
-            raise ImageTooLarge(
-                f'The size of the provided image (`{size / MIL:.2f} MB`) '
-                f'exceeds the limit of `{max_size / MIL} MB`'
-            )
+            raise ImageTooLarge(size, max_size)
 
     async def converted_to_buffer(self, source: Argument) -> bytes:
         if isinstance(source, (discord.Member, discord.User)):

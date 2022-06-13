@@ -35,6 +35,7 @@ from wand.image import Image as WandImage
 from wand.sequence import Sequence
 
 from .converter import ImageConverter
+from .exceptions import TooManyFrames, ImageProcessTimeout
 from ..helpers import to_thread as to_thread_deco
 
 if TYPE_CHECKING:
@@ -63,6 +64,7 @@ if TYPE_CHECKING:
     Duration: TypeAlias = list[int] | int | None
 
 __all__: tuple[str, ...] = (
+    'check_frame_amount',
     'svg_to_png',
     'process_gif',
     'get_closest_color',
@@ -83,14 +85,15 @@ __all__: tuple[str, ...] = (
     'do_command',
 )
 
+MAX_FRAMES: Final[int] = 200
 FORMATS: Final[tuple[str, ...]] = ('png', 'gif')
 
 
 @to_thread_deco
 def svg_to_png(
-    svg_bytes: bytes, 
-    *, 
-    width: int = 500, 
+    svg_bytes: bytes,
+    *,
+    width: int = 500,
     height: int = 500,
 ) -> bytes:
     with WandImage(
@@ -102,6 +105,24 @@ def svg_to_png(
     ) as asset:
         return asset.make_blob('png')
 
+async def run_threaded(
+    func: Callable[[BytesIO], R | R_], 
+    argument: BytesIO,
+    *,
+    timeout: int = 600
+) -> R | R_:
+    try:
+        return await asyncio.wait_for(
+            asyncio.to_thread(func, argument),
+            timeout=timeout,
+        )
+    except asyncio.TimeoutError as exc:
+        raise ImageProcessTimeout(timeout) from exc
+
+def check_frame_amount(img: Image.Image | WandImage) -> None:
+    frames = getattr(img, 'n_frames', 1) if isinstance(img, Image.Image) else img.sequence
+    if (n := len(frames)) > MAX_FRAMES:
+        raise TooManyFrames(n, MAX_FRAMES)
 
 def process_gif(
     img: WandImage | Image.Image, 
@@ -202,6 +223,8 @@ def process_wand_gif(
     *args: P.args, 
     **kwargs: P.kwargs,
 ) -> I_:
+
+    check_frame_amount(image)
 
     for i, frame in enumerate(image.sequence):
         result = func(ctx, frame, *args, **kwargs)
@@ -381,6 +404,7 @@ def pil_image(
                     getattr(image, 'is_animated', False) or 
                     str(image.format).lower() == 'gif'
                 ):
+                    check_frame_amount(image)
                     result = ImageSequence.all_frames(image, lambda frame: func(ctx, frame, *args, **kwargs))
                 else:
                     result = func(ctx, image, *args, **kwargs)
@@ -389,7 +413,7 @@ def pil_image(
                     result = save_pil_image(result, duration=durations or duration, file=to_file)
                 return result
 
-            return await asyncio.to_thread(inner, img)
+            return await run_threaded(inner, img)
         return wrapper
     return decorator
 
@@ -433,7 +457,7 @@ def wand_image(
                     result = save_wand_image(result, duration=durations or duration, file=to_file)
                 return result
 
-            return await asyncio.to_thread(inner, img)
+            return await run_threaded(inner, img)
         return wrapper
     return decorator
 
