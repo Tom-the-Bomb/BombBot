@@ -160,7 +160,7 @@ class BombBot(commands.Bot):
 
     async def on_command_error(self, ctx: BombContext, error: Exception) -> Optional[discord.Message]:
 
-        IGNORE_EXC: tuple[type[Exception]] = (
+        IGNORE_EXC = (
             commands.CommandNotFound,
             commands.NotOwner,
         )

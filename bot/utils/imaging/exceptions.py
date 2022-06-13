@@ -1,6 +1,5 @@
 
 import humanize
-from discord.ext.commands import CheckFailure
 
 __all__: tuple[str] = (
     'BaseImageException',
@@ -10,7 +9,8 @@ __all__: tuple[str] = (
     'ImageProcessTimeout',
 )
 
-class BaseImageException(CheckFailure):
+
+class BaseImageException(Exception):
     message: str
 
     def __str__(self) -> str:
