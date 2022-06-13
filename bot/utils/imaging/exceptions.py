@@ -22,7 +22,7 @@ class BaseImageException(Exception):
 class TooManyFrames(BaseImageException):
 
     def __init__(self, count: int, max_frames: int) -> None:
-        self.message = f'Provided image has a frame-count of {count} which exeeds the limit of {max_frames}'
+        self.message = f'Provided image has a frame-count of `{count}` which exeeds the limit of `{max_frames}`'
 
 class ImageTooLarge(BaseImageException):
 
@@ -42,4 +42,4 @@ class ImageProcessTimeout(BaseImageException):
 
     def __init__(self, timeout: int) -> None:
         timeout = humanize.precisedelta(timeout)
-        self.message = f'Image Process took too long and timed out, the timeout is `{timeout}s`'
+        self.message = f'Image Process took too long and timed out, the timeout is `{timeout}`'
