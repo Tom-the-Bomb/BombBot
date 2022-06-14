@@ -4,8 +4,8 @@ import humanize
 __all__: tuple[str] = (
     'BaseImageException',
     'TooManyFrames',
-    'ImageTooLarge',
     'InvalidColor',
+    'ImageTooLarge',
     'ImageProcessTimeout',
 )
 
@@ -24,14 +24,14 @@ class TooManyFrames(BaseImageException):
     def __init__(self, count: int, max_frames: int) -> None:
         self.message = f'Provided image has a frame-count of `{count}` which exeeds the limit of `{max_frames}`'
 
-class ImageTooLarge(BaseImageException):
+class InvalidColor(BaseImageException):
 
     def __init__(self, argument: str) -> None:
         self.message = f'`{argument}` is not a valid color!'
 
-class InvalidColor(BaseImageException):
+class ImageTooLarge(BaseImageException):
 
-    def __init__(self, size: int, max_size: int) -> None:
+    def __init__(self, size: int, max_size: int = 15_000_000) -> None:
         MIL = 1_000_000
         self.message = (
             f'The size of the provided image (`{size / MIL:.2f} MB`) '
