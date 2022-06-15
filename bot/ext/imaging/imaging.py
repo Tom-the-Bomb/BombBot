@@ -256,10 +256,18 @@ class Imaging(commands.Cog):
             text = textwrap.shorten(text, width=MAX_SIZE + 3, placeholder=' ...')
         return await do_command(ctx, text, func=type_gif, duration=200)
 
-    @commands.command(name='lego')
+    @commands.group(name='lego', invoke_without_command=True)
     async def _lego(self, ctx: BombContext, image: Optional[ImageConverter], *, options: LegoSize) -> None:
         """Builds the provided image with lego pieces"""
         return await do_command(ctx, image, func=lego, size=options.size)
+    
+    @_lego.command(name='speed')
+    async def _lego_speed(self, ctx: BombContext, image: Optional[ImageConverter], *, options: LegoSize) -> None:
+        """Builds the provided image with lego pieces BUT with a faster algorithm
+        than that of the parent command, but at the same time yielding worse quality results
+        use this if you do not care much about quality and/or the image is a long GIF (takes longer overall)
+        """
+        return await do_command(ctx, image, func=lego_speed, size=options.size)
 
     @commands.command(name='minecraft', aliases=('mc',))
     async def _minecraft(self, ctx: BombContext, image: Optional[ImageConverter], *, options: BlockSize) -> None:

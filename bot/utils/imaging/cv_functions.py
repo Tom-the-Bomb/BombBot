@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 __all__: tuple[str, ...] = (
     'lego',
+    'lego_speed',
     'invert_scan',
     'cv_floor',
     'cartoon',
@@ -91,6 +92,20 @@ def lego(_, img: np.ndarray, *, size: int = 40) -> np.ndarray:
         x = 0
         y += 30
     return base
+
+@pil_image()
+@to_array()
+def lego_speed(_, img: np.ndarray, *, size: int = 40) -> np.ndarray:
+    img = resize_cv_prop(img, 
+        height=size, 
+        resampling=cv2.INTER_AREA,
+    )
+    h, w, *_ = img.shape
+    img = cv2.resize(img, (w * 30, h * 30), interpolation=cv2.INTER_NEAREST)
+
+    base = np.tile(LEGO, [h, w, 1])
+    blended = cv2.addWeighted(img, 0.7, base, 0.6, 0)
+    return blended
 
 @pil_image(width=400, process_all_frames=False)
 @to_array('RGBA', cv2.COLOR_RGBA2BGRA)
