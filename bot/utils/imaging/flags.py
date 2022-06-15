@@ -56,7 +56,7 @@ class CharcoalIntensity(PosixFlagConverter):
     intensity: Range[float, 0.0, 5.0] = 1.5
 
 class LegoSize(PosixFlagConverter):
-    """• `--size` an {integer} between `1` and `60` (by default `40`)
+    """• `--size` an {integer} between `1` and `70` (by default `40`)
     Specifies the number of bricks to use for the generated image
     """
     size: Range[int, 1, 70] = 40
