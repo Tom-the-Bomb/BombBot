@@ -59,7 +59,7 @@ class LegoSize(PosixFlagConverter):
     """• `--size` an {integer} between `1` and `60` (by default `40`)
     Specifies the number of bricks to use for the generated image
     """
-    size: Range[int, 1, 60] = 40
+    size: Range[int, 1, 70] = 40
 
 class BlockSize(PosixFlagConverter):
     """• `--size` an {integer} between `1` and `110` (by default `70`)
