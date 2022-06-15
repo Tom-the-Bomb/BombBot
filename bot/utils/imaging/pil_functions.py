@@ -157,7 +157,7 @@ def mirror(_, img: Image.Image) -> Image.Image:
 def contour(_, img: Image.Image) -> Image.Image:
     return img.filter(ImageFilter.CONTOUR)
 
-@pil_image(process_all_frames=False)
+@pil_image(width=400, process_all_frames=False)
 def spin(_, img: Image.Image) -> list[Image.Image]:
     img = img.convert('RGBA')
     img = pil_circular(img, mask=PIL_CIRCLE_MASK)
