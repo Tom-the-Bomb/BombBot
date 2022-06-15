@@ -119,13 +119,13 @@ async def run_threaded(
     except asyncio.TimeoutError as exc:
         raise ImageProcessTimeout(timeout) from exc
 
-def check_frame_amount(img: Image.Image | WandImage) -> None:
+def check_frame_amount(img: Image.Image | WandImage, max_frames: int = MAX_FRAMES) -> None:
     if isinstance(img, Image.Image):
         n_frames = getattr(img, 'n_frames', 1)
     else:
         n_frames = len(img.sequence)
-    if n_frames > MAX_FRAMES:
-        raise TooManyFrames(n_frames, MAX_FRAMES)
+    if n_frames > max_frames:
+        raise TooManyFrames(n_frames, max_frames)
 
 def process_gif(
     img: WandImage | Image.Image, 
@@ -223,11 +223,12 @@ def process_wand_gif(
     image: I_, 
     func: WandFunction, 
     ctx: BombContext,
-    *args: P.args, 
+    *args: P.args,
+    max_frames: int = MAX_FRAMES, 
     **kwargs: P.kwargs,
 ) -> I_:
 
-    check_frame_amount(image)
+    check_frame_amount(image, max_frames)
 
     for i, frame in enumerate(image.sequence):
         result = func(ctx, frame, *args, **kwargs)
@@ -387,6 +388,7 @@ def pil_image(
     auto_save: bool = True,
     to_file: bool = True,
     pass_buf: bool = False,
+    max_frames: int = MAX_FRAMES,
 ) -> Callable[[PillowFunction], PillowThreaded]:
     def decorator(func: PillowFunction) -> PillowThreaded:
 
@@ -407,7 +409,7 @@ def pil_image(
                     getattr(image, 'is_animated', False) or 
                     str(image.format).lower() == 'gif'
                 ):
-                    check_frame_amount(image)
+                    check_frame_amount(image, max_frames)
                     result = ImageSequence.all_frames(image, lambda frame: func(ctx, frame, *args, **kwargs))
                 else:
                     result = func(ctx, image, *args, **kwargs)
@@ -430,6 +432,7 @@ def wand_image(
     auto_save: bool = True,
     to_file: bool = True,
     pass_buf: bool = False,
+    max_frames: int = MAX_FRAMES,
 ) -> Callable[[WandFunction], WandThreaded]:
     def decorator(func: WandFunction) -> WandThreaded:
 
@@ -452,7 +455,7 @@ def wand_image(
                     len(image.sequence) > 1 or 
                     str(image.format).lower() == 'gif'
                 ):
-                    result = process_wand_gif(image, func, ctx, *args, **kwargs)
+                    result = process_wand_gif(image, func, ctx, *args, max_frames=max_frames, **kwargs)
                 else:
                     result = func(ctx, image, *args, **kwargs)
 

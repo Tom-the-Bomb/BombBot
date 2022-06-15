@@ -131,7 +131,7 @@ class BombHelp(commands.HelpCommand):
         embed.add_field(name='Aliases:', value=f'`{aliases}`', inline=False)
 
         if params := command.clean_params:
-            embed.add_field(name='Parameters', value=self.get_param_doc(params))
+            embed.add_field(name='🔡 Parameters', value=self.get_param_doc(params))
         
         if flags := self.get_flag_doc(command):
             embed.add_field(name='🚩 Flags', value=flags or '-', inline=False)
