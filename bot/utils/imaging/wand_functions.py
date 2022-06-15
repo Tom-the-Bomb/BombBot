@@ -175,7 +175,7 @@ def floor(_, img: I) -> I:
     )
     return img
 
-@wand_image()
+@wand_image(width=500)
 def increasing_wave(_, img: Image) -> Image:
     base = Image()
 
@@ -234,7 +234,7 @@ def swirl(_, img: Image) -> Image:
     base.sequence.extend(reversed(base.sequence))
     return base
 
-@wand_image(process_all_frames=False)
+@wand_image(width=300, process_all_frames=False)
 def turn(_, img: I) -> I:
 
     if len(img.sequence) > 1 or img.format.lower() == 'gif':
