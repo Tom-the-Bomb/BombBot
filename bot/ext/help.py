@@ -110,9 +110,10 @@ class BombHelp(commands.HelpCommand):
         return string
 
     def get_param_doc(self, params: dict[str, commands.Parameter]) -> str:
-        return '\n'.join(
+        doc = '\n'.join(
             self._format_param(name, param) for name, param in params.items()
         ) or '-'
+        return doc + '\n'
 
     def get_flag_doc(self, command: commands.Command) -> str:
         if flags := command.clean_params.get('options'):
@@ -128,13 +129,13 @@ class BombHelp(commands.HelpCommand):
         embed = self.get_base_embed()
         embed.title = command.qualified_name
         embed.description = f'```ps\n{signature}\n```\n{command.help}\n\n\u200b'
-        embed.add_field(name='Aliases:', value=f'`{aliases}`', inline=False)
+        embed.add_field(name='Aliases:', value=f'`{aliases}`\n', inline=False)
 
         if params := command.clean_params:
             embed.add_field(name='🔡 Parameters', value=self.get_param_doc(params))
         
         if flags := self.get_flag_doc(command):
-            embed.add_field(name='🚩 Flags', value=flags or '-', inline=False)
+            embed.add_field(name='🚩 Flags', value=(flags or '-') + '\n', inline=False)
 
         if isinstance(command, commands.Group):
             subcommands = '`\n`'.join(cmd.qualified_name for cmd in command.commands) or 'none'
