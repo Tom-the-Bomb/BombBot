@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 from wand.color import Color
 
-from .image import svg_to_png
+from . import image as image_mod
 from .exceptions import InvalidColor, ImageTooLarge
 from ..helpers import Regexes
 
@@ -85,7 +85,7 @@ class UrlConverter(commands.Converter):
                     if r.content_type.startswith('image/'):
                         byt = await r.read()
                         if r.content_type.startswith('image/svg'):
-                            byt = await svg_to_png(byt)
+                            byt = await image_mod.svg_to_png(byt)
                         return byt
                     elif Regexes.TENOR_PAGE_REGEX.fullmatch(argument):
                         return await self.find_tenor_gif(ctx, r)
@@ -174,7 +174,7 @@ class ImageConverter(commands.Converter):
             if file.content_type and file.content_type.startswith('image/'):
                 byt = await file.read()
                 if file.content_type.startswith('image/svg'):
-                    byt = await svg_to_png(byt)
+                    byt = await image_mod.svg_to_png(byt)
                 return byt
 
     async def convert(self, ctx: BombContext, argument: str, *, raise_on_failure: bool = True) -> Optional[bytes]:
