@@ -12,6 +12,7 @@ from .exceptions import InvalidColor, ImageTooLarge
 from ..helpers import Regexes
 
 if TYPE_CHECKING:
+    from re import Match
     from aiohttp import ClientResponse
     from ..context import BombContext
 
@@ -60,9 +61,23 @@ class UrlConverter(commands.Converter):
         except Exception:
             raise bad_arg
 
+    async def find_imgur_img(self, ctx: BombContext, match: Match) -> bytes:
+        name = match.group(2)
+        raw_url = f'https://i.imgur.com/{name}.gif'
+
+        bad_arg = commands.BadArgument('An Error occured when fetching the imgur GIF')
+        try:
+            async with ctx.bot.session.get(raw_url) as raw:
+                if raw.ok:
+                    return await raw.read()
+                else:
+                    raise bad_arg
+        except Exception:
+            raise bad_arg
+
     async def convert(self, ctx: BombContext, argument: str) -> bytes:
         
-        bad_arg = commands.BadArgument('Invalid URL')
+        bad_arg = commands.BadArgument('Invalid image URL')
         argument = argument.strip('<>')
         try:
             async with ctx.bot.session.get(argument) as r:
@@ -74,6 +89,8 @@ class UrlConverter(commands.Converter):
                         return byt
                     elif Regexes.TENOR_PAGE_REGEX.fullmatch(argument):
                         return await self.find_tenor_gif(ctx, r)
+                    elif imgur := Regexes.IMGUR_PAGE_REGEX.fullmatch(argument):
+                        return await self.find_imgur_img(ctx, imgur)
                     else:
                         raise bad_arg
                 else:
