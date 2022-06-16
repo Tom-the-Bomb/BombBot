@@ -108,7 +108,8 @@ class BombBot(commands.Bot):
         self.logger.info('bot is ready')
 
     async def close(self) -> None:
-        await self.session.close()
+        if session := self.session:
+            await session.close()
         return await super().close()
 
     async def get_context(self, message: discord.Message, *, cls: type[commands.Context] = BombContext) -> commands.Context | BombContext:
