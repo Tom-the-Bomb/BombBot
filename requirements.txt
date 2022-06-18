@@ -7,8 +7,6 @@ jishaku
 Pillow
 wand
 psutil
-bs4
-lxml
 opencv-python
 async_tio
 pilmoji
