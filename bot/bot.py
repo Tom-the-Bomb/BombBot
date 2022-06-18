@@ -1,10 +1,19 @@
-from typing import Optional, TypedDict, Any, Final
+from __future__ import annotations
+
+from typing import (
+    TYPE_CHECKING,
+    TypedDict,
+    Optional,
+    ClassVar,
+    Any,
+)
 import pathlib
 import json
 import logging
 import traceback
 from math import ceil
 from inspect import getdoc
+from datetime import datetime
 
 import jishaku
 import discord
@@ -14,36 +23,57 @@ from aiohttp import MultipartWriter, ClientSession
 from .utils.context import BombContext
 from .utils.imaging import BaseImageException, svg_to_png
 
+if TYPE_CHECKING:
 
-class Config(TypedDict):
-    TOKEN: str
-    PREFIXES: list[str]
+    class Config(TypedDict):
+        TOKEN: str
+        PREFIXES: list[str]
+
+    class CodeData(TypedDict):
+        classes: int
+        funcs: int
+        coros: int
+        files: int
+        lines: int
+
 
 class BombBot(commands.Bot):
     """A multipurpose discord bot featuring numerous games and image processing command among many others
     """
-    EMBED_COLOR: Final[int] = 0x2F3136
+    EMBED_COLOR: ClassVar[int] = 0x2F3136
 
     def __init__(self, **options: Any) -> None:
 
         self.session: Optional[ClientSession] = None
+        self.code_stats: CodeData = {}
 
         self.config: Config = self.load_config()
         self.default_prefixes: list[str] = self.config['PREFIXES']
         self.token: str = self.config['TOKEN']
 
         self.setup_logging()
+        self.cache_code_stats()
 
         intents = discord.Intents.all()
+
+        self.launch_time: datetime = datetime.utcnow()
         
         super().__init__(
             command_prefix=commands.when_mentioned_or(*self.default_prefixes),
             description=getdoc(self),
             intents=intents,
+            strip_after_prefix=True,
             case_insensitive=True, 
             status=discord.Status.idle,
             activity=discord.Game('beep boop'),
             **options,
+        )
+
+    @property
+    def invite_url(self) -> str:
+        return discord.utils.oauth_url(
+            client_id=self.user.id, 
+            permissions=discord.Permissions(416313375937),
         )
 
     @property
@@ -71,6 +101,39 @@ class BombBot(commands.Bot):
         with open('config.json') as config:
             return json.load(config)
 
+    def get_uptime(self) -> tuple[int, int, int, int]:
+        delta = (datetime.utcnow() - self.launch_time)
+        delta = round(delta.total_seconds())
+
+        days, left = divmod(delta, 86400)
+        hours, left = divmod(left, 3600)
+        mins, secs = divmod(left, 60)
+        return days, hours, mins, secs
+
+    def cache_code_stats(self) -> None:
+        self.code_stats = {
+            'classes': 0,
+            'funcs': 0,
+            'coros': 0,
+            'files': 0,
+            'lines': 0,
+        }
+        
+        for file in pathlib.Path('./').rglob('*.py'):
+            with file.open(errors='replace') as fp:
+
+                for line in fp.readlines():
+                    line = line.strip()
+                    if line.startswith('class '):
+                        self.code_stats['classes'] += 1
+                    if line.startswith('def '):
+                        self.code_stats['funcs'] += 1
+                    if line.startswith('async def '):
+                        self.code_stats['coros'] += 1
+                        
+                    self.code_stats['lines'] += 1
+                self.code_stats['files'] += 1
+
     def run(self, *args: Any, **kwargs: Any) -> None:
         token = kwargs.pop('token', self.token)
         reconnect = kwargs.pop('reconnect', True)
@@ -92,14 +155,36 @@ class BombBot(commands.Bot):
             jishaku.Flags.NO_DM_TRACEBACK = True
             jishaku.Flags.HIDE = True
 
-            await self.load_extension('jishaku')
+            await self.load_extension('jishaku', recache_stats=False)
 
         for ext in self.all_extensions:
             try:
-                await self.load_extension(ext)
+                await self.load_extension(ext, recache_stats=False)
                 self.logger.info(f'{ext} has been loaded')
             except Exception as e:
                 self.logger.error(e)
+
+    async def load_extension(
+        self,
+        name: str,
+        *,
+        package: Optional[str] = None,
+        recache_stats: bool = True,
+    ) -> None:
+        if recache_stats:
+            self.cache_code_stats()
+        return await super().load_extension(name, package=package)
+
+    async def reload_extension(
+        self,
+        name: str,
+        *,
+        package: Optional[str] = None,
+        recache_stats: bool = True,
+    ) -> None:
+        if recache_stats:
+            self.cache_code_stats()
+        return await super().reload_extension(name, package=package)
 
     async def on_connect(self) -> None:
         self.logger.info('bot is connected')
