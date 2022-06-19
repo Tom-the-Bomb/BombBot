@@ -19,9 +19,9 @@ from PIL import (
 )
 
 from ..helpers import (
-    to_thread, 
-    chunk, 
-    get_asset, 
+    to_thread,
+    chunk,
+    get_asset,
     truncate,
 )
 from .fonts import *
@@ -98,10 +98,10 @@ def _render_palette_image(colors: list[tuple[int, ...]]) -> Image.Image:
     return base
 
 def _gen_shape_frame(
-    img: Image.Image, 
-    method: str, 
-    *, 
-    size: int = 10, 
+    img: Image.Image,
+    method: str,
+    *,
+    size: int = 10,
     count: int = 10000,
     **options: Any,
 ) -> Image.Image:
@@ -168,7 +168,7 @@ def spin(_, img: Image.Image) -> list[Image.Image]:
     for i in range(0, 360, 8):
         img = img.rotate(i, resample=Image.BICUBIC)
         frames.append(img)
-        
+
     frames += reversed(frames)
     return frames
 
@@ -200,7 +200,7 @@ def type_gif(_, text: str, *, duration: int = 500) -> discord.File:
             draw = ImageDraw.Draw(img)
             draw.multiline_text((3, 3), text[:i], fill=(245, 245, 220), font=UNICODE_FONT)
             frames.append(img)
-    
+
     return save_pil_image(frames, duration=duration)
 
 @pil_image(width=300, process_all_frames=False)
@@ -223,11 +223,11 @@ def letters(_, img: Image.Image) -> list[Image.Image]:
     img = img.convert('RGBA')
     return [
         _gen_shape_frame(
-            img=img, 
-            method='text', 
-            text=lambda: random.choice(string.ascii_lowercase), 
-            count=3000, 
-            font=CODE_FONT, 
+            img=img,
+            method='text',
+            text=lambda: random.choice(string.ascii_lowercase),
+            count=3000,
+            font=CODE_FONT,
             anchor='mm',
         ) for _ in range(3)
     ]
@@ -286,8 +286,8 @@ def caption(_, img: Image.Image, *, text: str) -> Image.Image:
     )
 
     parts = textwrap.wrap(
-        text=text, 
-        width=15, 
+        text=text,
+        width=15,
         replace_whitespace=False,
     )
     text = '\n'.join(parts)
@@ -296,7 +296,7 @@ def caption(_, img: Image.Image, *, text: str) -> Image.Image:
     extra_h += margin * 2
 
     spacing = pilmoji.getsize('A', font=CAPTION_FONT)[1] + spacing
-    
+
     if (max_width := text_width + margin * 2) >= img.width:
         img = resize_pil_prop(img, width=max_width)
 
@@ -311,9 +311,9 @@ def caption(_, img: Image.Image, *, text: str) -> Image.Image:
                 if font == fallback:
                     top = top + offset
                 draw.text(
-                    xy=(x, top), 
-                    text=part, 
-                    font=font, 
+                    xy=(x, top),
+                    text=part,
+                    font=font,
                     fill='black',
                     emoji_position_offset=(0, 1),
                 )

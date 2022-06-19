@@ -27,8 +27,19 @@ class Graphing(commands.Cog):
         reload(graphing)
 
     @commands.command(name='boxplot', aliases=('box', 'boxwhisker', 'numsetdata'))
-    async def _boxplot(self, ctx: BombContext, dataset: commands.Greedy[float]) -> None:
-        return await do_command(ctx, dataset, func=boxplot)
+    async def _boxplot(self, ctx: BombContext, *numbers: float) -> None:
+        """Plots the providednumber data set in a box & whisker plot
+        showing Min, Max, Mean, Q1, Median and Q3.
+        Numbers should be seperated by spaces per data point.
+        """
+        return await do_command(ctx, numbers, func=boxplot)
+
+    @commands.command(name='plot', aliases=('line-graph', 'graph'))
+    async def _plot(self, ctx: BombContext, *numbers: float) -> None:
+        """Plots the provided equation out.
+        Ex: `{prefix}plot 2x+1`
+        """
+        return await do_command(ctx, numbers, func=plotfn)
 
 async def setup(bot: BombBot) -> None:
     await bot.add_cog(Graphing(bot))

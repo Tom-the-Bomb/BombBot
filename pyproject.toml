@@ -1,0 +1,28 @@
+[project]
+name = "BombBot"
+author = "Tom-the-Bomb"
+description = "A multipurpose discord bot featuring mainly Image Manipulation & Games and more"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+
+dependencies = [
+    "git+https://github.com/Rapptz/discord.py.git",
+    "git+https://github.com/Tom-the-Bomb/Discord-Games.git",
+    "git+https://github.com/f-stop-lang/f-stop-rply.git",
+    "typing_extensions",
+    "matplotlib",
+    "humanize",
+    "jishaku",
+    "Pillow",
+    "wand",
+    "psutil",
+    "opencv-python",
+    "async_tio",
+    "pilmoji",
+]
+
+[tool.pyright]
+pythonVersion = "3.10"
+reportOptionalMemberAccess = "none"
+reportOptionalIterable = "none"
+reportOptionalSubscript = "none"

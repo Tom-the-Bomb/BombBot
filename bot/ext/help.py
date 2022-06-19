@@ -40,7 +40,7 @@ class HelpSelect(discord.ui.Select['HelpView']):
 
 class HelpView(AuthorOnlyView):
 
-    def __init__(self, help_menu: BombHelp, mapping: HelpMapping, *, author: discord.User, timeout: float = None) -> None:
+    def __init__(self, help_menu: BombHelp, mapping: HelpMapping, *, author: discord.User, timeout: Optional[float] = None) -> None:
         super().__init__(author=author, timeout=timeout)
 
         self.help_menu = help_menu
@@ -91,7 +91,7 @@ class BombHelp(commands.HelpCommand):
         embed = self.get_base_embed()
         embed.title = cog.qualified_name
 
-        cmds = mapping.get(cog)
+        cmds = mapping.get(cog, ())
         description = '` | `'.join([cmd.qualified_name for cmd in cmds]) or 'none'
         embed.description = f'{cog.description}\n\n`{description}`'
 
@@ -123,12 +123,13 @@ class BombHelp(commands.HelpCommand):
                 return doc
 
     def get_command_embed(self, command: commands.Command) -> discord.Embed:
+        help_doc = command.help.format(prefix=self.context.clean_prefix)
         signature = self.get_command_signature(command)
         aliases = '` `'.join(command.aliases) or 'none'
 
         embed = self.get_base_embed()
         embed.title = command.qualified_name
-        embed.description = f'```ps\n{signature}\n```\n{command.help}\n\n\u200b'
+        embed.description = f'```ps\n{signature}\n```\n{help_doc}\n\n\u200b'
         embed.add_field(name='Aliases:', value=f'`{aliases}`\n\u200b', inline=False)
 
         if params := command.clean_params:

@@ -45,7 +45,13 @@ class BombBot(commands.Bot):
     def __init__(self, **options: Any) -> None:
 
         self.session: Optional[ClientSession] = None
-        self.code_stats: CodeData = {}
+        self.code_stats: CodeData = {
+            'classes': 0,
+            'funcs': 0,
+            'coros': 0,
+            'files': 0,
+            'lines': 0,
+        }
 
         self.config: Config = self.load_config()
         self.default_prefixes: list[str] = self.config['PREFIXES']
@@ -69,7 +75,7 @@ class BombBot(commands.Bot):
             **options,
         )
 
-    @property
+    @discord.utils.cached_property
     def invite_url(self) -> str:
         return discord.utils.oauth_url(
             client_id=self.user.id,
@@ -200,7 +206,7 @@ class BombBot(commands.Bot):
     async def get_context(self, message: discord.Message, *, cls: type[commands.Context] = BombContext) -> commands.Context | BombContext:
         return await super().get_context(message, cls=cls)
 
-    async def post_mystbin(self, code: str, *, language: Optional[str] = None) -> str:
+    async def post_mystbin(self, code: str, *, language: Optional[str] = None) -> Optional[str]:
         MYSTBIN_URL = 'https://mystb.in/api/pastes'
 
         payload = MultipartWriter()
@@ -300,6 +306,9 @@ class BombBot(commands.Bot):
 
         elif isinstance(error, commands.NoEntryPointError):
             return await ctx.send(f'Extension `{error.name}` does not have a `setup` function')
+
+        elif isinstance(error, commands.BadArgument):
+            return await ctx.send(str(error))
 
         else:
             trace = traceback.format_exception(error.__class__, error, error.__traceback__)
