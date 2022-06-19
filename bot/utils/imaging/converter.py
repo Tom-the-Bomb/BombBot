@@ -38,7 +38,7 @@ class DefaultEmojiConverter(commands.Converter):
 
     async def convert(self, ctx: BombContext, argument: str) -> bytes:
         emoji = await ctx.bot.get_default_emoji(argument)
-        
+
         if not emoji:
             raise commands.BadArgument('Invalid Emoji')
         else:
@@ -76,7 +76,7 @@ class UrlConverter(commands.Converter):
             raise bad_arg
 
     async def convert(self, ctx: BombContext, argument: str) -> bytes:
-        
+
         bad_arg = commands.BadArgument('Invalid image URL')
         argument = argument.strip('<>')
         try:
@@ -147,7 +147,7 @@ class ImageConverter(commands.Converter):
 
         if files := message.attachments:
             source = await self.get_file_image(files)
-        
+
         if (st := message.stickers) and source is None:
             source = await self.get_sticker_image(ctx, st)
 
@@ -160,7 +160,7 @@ class ImageConverter(commands.Converter):
                     except commands.BadArgument:
                         continue
         return source
- 
+
     async def get_sticker_image(self, ctx: BombContext, stickers: list[discord.StickerItem]) -> Optional[bytes]:
         for sticker in stickers:
             if sticker.format is not discord.StickerFormatType.lottie:
@@ -201,7 +201,7 @@ class ImageConverter(commands.Converter):
 
         if source is None:
             source = await self.get_attachments(ctx)
-        
+
             if (ref := ctx.message.reference) and source is None:
                 ref = ref.resolved
 

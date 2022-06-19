@@ -8,7 +8,7 @@ from typing import (
     TypeAlias,
     Concatenate,
     Awaitable,
-    ParamSpec, 
+    ParamSpec,
     TypeVar,
     Iterable,
     TYPE_CHECKING,
@@ -99,16 +99,16 @@ def svg_to_png(
     height: int = 500,
 ) -> bytes:
     with WandImage(
-        blob=svg_bytes, 
+        blob=svg_bytes,
         format='svg',
-        width=width, 
-        height=height, 
+        width=width,
+        height=height,
         background='none',
     ) as asset:
         return asset.make_blob('png')
 
 async def run_threaded(
-    func: Callable[[BytesIO], R | R_], 
+    func: Callable[[BytesIO], R | R_],
     argument: BytesIO,
     *,
     timeout: int = 600
@@ -130,7 +130,7 @@ def check_frame_amount(img: Image.Image | WandImage, max_frames: int = MAX_FRAME
         raise TooManyFrames(n_frames, max_frames)
 
 def process_gif(
-    img: WandImage | Image.Image, 
+    img: WandImage | Image.Image,
     iterable: Iterable[IT],
 ) -> Iterable[tuple[WandImage | Image.Image, IT]]:
 
@@ -145,7 +145,7 @@ def get_closest_color(px: tuple[int, ...], sample: list | np.ndarray, *, reverse
 
     if not isinstance(sample, np.ndarray):
         sample = np.array(sample)
-        
+
     distances = np.sqrt(
         np.sum((sample - px) ** 2, axis=1)
     )
@@ -155,7 +155,7 @@ def get_closest_color(px: tuple[int, ...], sample: list | np.ndarray, *, reverse
 
 def wand_circle_mask(width: int, height: int) -> WandImage:
     mask = WandImage(
-        width=width, height=height, 
+        width=width, height=height,
         background='transparent', colorspace='gray'
     )
     mask.antialias = True
@@ -164,7 +164,7 @@ def wand_circle_mask(width: int, height: int) -> WandImage:
         draw.stroke_width = 1
         draw.fill_color = 'white'
         draw.circle(
-            (width // 2, height // 2), 
+            (width // 2, height // 2),
             (width // 2, 0)
         )
         draw(mask)
@@ -202,7 +202,7 @@ def pil_circular(img: Image.Image, *, mask: Optional[Image.Image] = None) -> Ima
 
 def _get_prop_size(
     image: Image.Image | WandImage | np.ndarray,
-    width: Optional[int] = None, 
+    width: Optional[int] = None,
     height: Optional[int] = None,
 ) -> tuple[int, int]:
 
@@ -222,11 +222,11 @@ def _get_prop_size(
 
 
 def process_wand_gif(
-    image: I_, 
-    func: WandFunction, 
+    image: I_,
+    func: WandFunction,
     ctx: BombContext,
     *args: P.args,
-    max_frames: int = MAX_FRAMES, 
+    max_frames: int = MAX_FRAMES,
     **kwargs: P.kwargs,
 ) -> I_:
 
@@ -242,9 +242,9 @@ def process_wand_gif(
     return image
 
 def resize_pil_prop(
-    image: Image.Image, 
-    width: Optional[int] = None, 
-    height: Optional[int] = None, 
+    image: Image.Image,
+    width: Optional[int] = None,
+    height: Optional[int] = None,
     *,
     process_gif: bool = True,
     resampling: Image.Resampling = Image.ANTIALIAS,
@@ -262,9 +262,9 @@ def resize_pil_prop(
         return resize_image(image)
 
 def resize_wand_prop(
-    image: WandImage, 
-    width: Optional[int] = None, 
-    height: Optional[int] = None, 
+    image: WandImage,
+    width: Optional[int] = None,
+    height: Optional[int] = None,
     *,
     resampling: str = 'lanczos',
 ) -> WandImage:
@@ -278,7 +278,7 @@ def resize_wand_prop(
 def resize_cv_prop(
     image: np.ndarray,
     width: Optional[int] = None,
-    height: Optional[int] = None, 
+    height: Optional[int] = None,
     *,
     resampling: int = cv2.INTER_LANCZOS4,
 ) -> np.ndarray:
@@ -290,10 +290,10 @@ def resize_cv_prop(
 
 
 def wand_save_list(
-    frames: list[Image.Image | WandImage] | ImageSequence.Iterator, 
+    frames: list[Image.Image | WandImage] | ImageSequence.Iterator,
     duration: Duration,
 ) -> WandImage:
-    
+
     is_pil = (
         isinstance(frames, ImageSequence.Iterator) or
         isinstance(frames[0], Image.Image)
@@ -306,9 +306,9 @@ def wand_save_list(
         if is_pil:
             frame = np.asarray(frame.convert('RGBA'))
             frame = WandImage.from_array(frame)
-        
+
         frame.dispose = 'background'
-        
+
         if isinstance(duration, list):
             frame.delay = duration[i]
         elif duration is not None:
@@ -332,8 +332,8 @@ def save_wand_image(
     is_list = isinstance(image, (list, ImageSequence.Iterator))
 
     is_gif = (
-        is_list or 
-        getattr(image, 'format', '').lower() == 'gif' or 
+        is_list or
+        getattr(image, 'format', '').lower() == 'gif' or
         len(getattr(image, 'sequence', [])) > 1
     )
 
@@ -357,8 +357,8 @@ def save_wand_image(
 
 
 def save_pil_image(
-    image: Image.Image | list[Image.Image], 
-    *, 
+    image: Image.Image | list[Image.Image],
+    *,
     duration: Optional[int] = None,
     file: bool = True,
 ) -> discord.File | BytesIO:
@@ -382,8 +382,8 @@ def save_pil_image(
 
 
 def pil_image(
-    width: Optional[int] = None, 
-    height: Optional[int] = None, 
+    width: Optional[int] = None,
+    height: Optional[int] = None,
     *,
     process_all_frames: bool = True,
     duration: Duration = None,
@@ -396,7 +396,7 @@ def pil_image(
 
         async def wrapper(ctx: C, img: I, *args: P.args, **kwargs: P.kwargs) -> R:
             img = await ImageConverter().get_image(ctx, img)
-            
+
             def inner(image: BytesIO) -> R:
                 durations = None
                 if not pass_buf:
@@ -407,8 +407,8 @@ def pil_image(
                         image = resize_pil_prop(image, width, height, process_gif=process_all_frames)
 
                 if process_all_frames and (
-                    isinstance(image, list) or 
-                    getattr(image, 'is_animated', False) or 
+                    isinstance(image, list) or
+                    getattr(image, 'is_animated', False) or
                     str(image.format).lower() == 'gif'
                 ):
                     check_frame_amount(image, max_frames)
@@ -426,8 +426,8 @@ def pil_image(
 
 
 def wand_image(
-    width: Optional[int] = None, 
-    height: Optional[int] = None, 
+    width: Optional[int] = None,
+    height: Optional[int] = None,
     *,
     process_all_frames: bool = True,
     duration: Duration = None,
@@ -453,8 +453,8 @@ def wand_image(
                         image = resize_wand_prop(image, width, height)
 
                 if process_all_frames and (
-                    isinstance(image, list) or 
-                    len(image.sequence) > 1 or 
+                    isinstance(image, list) or
+                    len(image.sequence) > 1 or
                     str(image.format).lower() == 'gif'
                 ):
                     result = process_wand_gif(image, func, ctx, *args, max_frames=max_frames, **kwargs)
@@ -471,8 +471,8 @@ def wand_image(
 
 
 def _convert_to_arr(
-    image: Image.Image | WandImage, 
-    img_mode: str, 
+    image: Image.Image | WandImage,
+    img_mode: str,
     arr_mode: int,
 ) -> np.ndarray:
 
@@ -486,8 +486,8 @@ def _convert_to_arr(
     return cv2.cvtColor(arr, arr_mode)
 
 def _convert_from_arr(
-    arr: np.ndarray | Any, 
-    og_image: Image.Image | WandImage, 
+    arr: np.ndarray | Any,
+    og_image: Image.Image | WandImage,
     arr_mode: int,
 ) -> Image.Image | WandImage | Any:
 
@@ -519,7 +519,7 @@ def to_array(img_mode: str = 'RGB', arr_mode: int = cv2.COLOR_RGB2BGR) -> Callab
             else:
                 arr = _convert_from_arr(arr, image, arr_mode)
             return arr
-            
+
         return inner
     return decorator
 
@@ -537,7 +537,7 @@ async def _do_command_body(
     elapsed = (end - start) * 1000
 
     await ctx.reply(
-        content=f'**Process Time:** `{elapsed:.2f} ms`', 
+        content=f'**Process Time:** `{elapsed:.2f} ms`',
         file=file,
         mention_author=False,
         delete_button=True,

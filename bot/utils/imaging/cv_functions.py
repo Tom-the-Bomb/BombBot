@@ -9,8 +9,8 @@ from PIL import Image
 from ..helpers import get_asset
 from .image import (
     resize_cv_prop,
-    get_closest_color, 
-    pil_image, 
+    get_closest_color,
+    pil_image,
     to_array,
 )
 
@@ -35,9 +35,9 @@ LEGO: np.ndarray = cv2.imread(get_asset('lego.png'))
 LEGO = cv2.resize(LEGO, (30, 30), interpolation=cv2.INTER_LANCZOS4)
 
 def _gen_invert_frame(
-    img: np.ndarray, 
+    img: np.ndarray,
     span: int,
-    bar_size: int, 
+    bar_size: int,
     fuzz_span: float,
     *,
     spread: bool = True,
@@ -76,8 +76,8 @@ def _colorize_lego(img: np.ndarray, color: tuple[int, int, int, int]) -> np.ndar
 @pil_image()
 @to_array('RGBA', cv2.COLOR_RGBA2BGRA)
 def lego(_, img: np.ndarray, *, size: int = 40) -> np.ndarray:
-    img = resize_cv_prop(img, 
-        height=size, 
+    img = resize_cv_prop(img,
+        height=size,
         resampling=cv2.INTER_AREA,
     )
     h, w, *_ = img.shape
@@ -96,8 +96,8 @@ def lego(_, img: np.ndarray, *, size: int = 40) -> np.ndarray:
 @pil_image()
 @to_array()
 def lego_speed(_, img: np.ndarray, *, size: int = 40) -> np.ndarray:
-    img = resize_cv_prop(img, 
-        height=size, 
+    img = resize_cv_prop(img,
+        height=size,
         resampling=cv2.INTER_AREA,
     )
     h, w, *_ = img.shape
@@ -116,7 +116,7 @@ def invert_scan(_, img: np.ndarray, *, spread: bool = True, bar_span: int = 12, 
     bar_size = width // bar_span
 
     frames = [
-        _gen_invert_frame(img.copy(), i, bar_size, fuzz_span, spread=spread) 
+        _gen_invert_frame(img.copy(), i, bar_size, fuzz_span, spread=spread)
         for i in range(0, width, 10)
     ]
     frames += [~f for f in frames]
@@ -129,13 +129,13 @@ def cv_floor(_, img: np.ndarray) -> np.ndarray:
     w, h, _ = img.shape
 
     _from = np.float32([
-        [0, 0], [w, 0], 
+        [0, 0], [w, 0],
         [0, h], [w, h],
     ])
     _to = np.float32([
-        [w * 0.3, h * 0.5], 
-        [w * 0.8, h * 0.5], 
-        [w * 0.1, h], 
+        [w * 0.3, h * 0.5],
+        [w * 0.8, h * 0.5],
+        [w * 0.1, h],
         [w * 0.9, h],
     ])
     transform = cv2.getPerspectiveTransform(_from, _to)

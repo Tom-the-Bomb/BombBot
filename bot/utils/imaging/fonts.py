@@ -20,7 +20,7 @@ def _get_font_glyphs(font_path: str) -> list[str]:
         ]
 
 def font_fallback(
-    text: str, 
+    text: str,
     font: ImageFont.FreeTypeFont,
     fallback: ImageFont.FreeTypeFont,
 ) -> list[tuple[str, ImageFont.FreeTypeFont]]:
@@ -37,13 +37,13 @@ def font_fallback(
 
 # font constants
 UNICODE_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(
-    font=get_asset('GnuUnifontFull-Pm9P.ttf'), 
+    font=get_asset('GnuUnifontFull-Pm9P.ttf'),
     size=25,
 )
 UNICODE_FONT.glyphs = _get_font_glyphs(UNICODE_FONT.path)
 
 CODE_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(
-    font=get_asset('Monaco-Linux.ttf'), 
+    font=get_asset('Monaco-Linux.ttf'),
     size=18,
 )
 CODE_FONT.glyphs = _get_font_glyphs(CODE_FONT.path)

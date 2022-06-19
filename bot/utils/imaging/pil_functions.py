@@ -1,7 +1,7 @@
 from __future__ import annotations
 from io import BytesIO
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Final, Any
 import textwrap
 import pathlib
 import random
@@ -54,12 +54,14 @@ __all__: tuple[str, ...] = (
     'bounce',
 )
 
+MCSIZE: Final[int] = 16
+
 def _load_mc_colors() -> dict[tuple[int, int, int], Image.Image]:
     colors = {}
     for file in pathlib.Path(get_asset('minecraft/')).glob('*.png'):
         block = Image.open(get_asset(file)).convert('RGB')
         single = block.resize((1, 1))
-        colors[single.getpixel((0, 0))] = block.resize((16, 16))
+        colors[single.getpixel((0, 0))] = block.resize((MCSIZE, MCSIZE))
     return colors
 
 # global image "cache"
@@ -172,9 +174,8 @@ def spin(_, img: Image.Image) -> list[Image.Image]:
 
 @pil_image()
 def minecraft(_, img: Image.Image, size: int = 70) -> Image.Image:
-    N = 16
     img = resize_pil_prop(img, height=size, resampling=Image.BILINEAR, process_gif=False)
-    bg = Image.new('RGBA', (img.width * N, img.height * N), 0)
+    bg = Image.new('RGBA', (img.width * MCSIZE, img.height * MCSIZE), 0)
     x, y = 0, 0
     for row in np.asarray(img.convert('RGBA')):
         for px in row:
@@ -182,9 +183,9 @@ def minecraft(_, img: Image.Image, size: int = 70) -> Image.Image:
                 color = get_closest_color(px[:-1], MC_SAMPLE)
                 file = MC_COLORS[color]
                 bg.paste(file, (x, y))
-            x += N
+            x += MCSIZE
         x = 0
-        y += N
+        y += MCSIZE
     return bg
 
 @to_thread

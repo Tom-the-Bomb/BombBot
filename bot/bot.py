@@ -57,13 +57,13 @@ class BombBot(commands.Bot):
         intents = discord.Intents.all()
 
         self.launch_time: datetime = datetime.utcnow()
-        
+
         super().__init__(
             command_prefix=commands.when_mentioned_or(*self.default_prefixes),
             description=getdoc(self),
             intents=intents,
             strip_after_prefix=True,
-            case_insensitive=True, 
+            case_insensitive=True,
             status=discord.Status.idle,
             activity=discord.Game('beep boop'),
             **options,
@@ -72,7 +72,7 @@ class BombBot(commands.Bot):
     @property
     def invite_url(self) -> str:
         return discord.utils.oauth_url(
-            client_id=self.user.id, 
+            client_id=self.user.id,
             permissions=discord.Permissions(416313375937),
         )
 
@@ -94,7 +94,7 @@ class BombBot(commands.Bot):
 
         self.logger: logging.Logger = logger
         self.logger.info('--- INITIALIZED ---')
-        
+
         return self.logger
 
     def load_config(self) -> Config:
@@ -118,7 +118,7 @@ class BombBot(commands.Bot):
             'files': 0,
             'lines': 0,
         }
-        
+
         for file in pathlib.Path('./').rglob('*.py'):
             with file.open(errors='replace') as fp:
 
@@ -130,7 +130,7 @@ class BombBot(commands.Bot):
                         self.code_stats['funcs'] += 1
                     if line.startswith('async def '):
                         self.code_stats['coros'] += 1
-                        
+
                     self.code_stats['lines'] += 1
                 self.code_stats['files'] += 1
 
@@ -138,16 +138,16 @@ class BombBot(commands.Bot):
         token = kwargs.pop('token', self.token)
         reconnect = kwargs.pop('reconnect', True)
         return super().run(
-            token, 
-            reconnect=reconnect, 
-            *args, 
+            token,
+            reconnect=reconnect,
+            *args,
             **kwargs,
         )
 
     async def setup_hook(self) -> None:
         self.session = ClientSession()
         return await self.load_all_cogs()
-    
+
     async def load_all_cogs(self, *, load_jishaku: bool = True) -> None:
 
         if load_jishaku:
@@ -291,7 +291,7 @@ class BombBot(commands.Bot):
 
         elif isinstance(error, commands.ExtensionAlreadyLoaded):
             return await ctx.send(f'Extension `{error.name}` has already been loaded')
-        
+
         elif isinstance(error, commands.ExtensionNotLoaded):
             return await ctx.send(f'Extension `{error.name}` has not been loaded yet')
 
@@ -304,7 +304,7 @@ class BombBot(commands.Bot):
         else:
             trace = traceback.format_exception(error.__class__, error, error.__traceback__)
             trace = f"```py\n{''.join(trace)}\n```"
-            
+
             if len(trace) > 2000:
                 trace = await ctx.bot.post_mystbin(trace)
 

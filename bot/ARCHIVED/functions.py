@@ -20,7 +20,7 @@ def colorize_lego_band(band: np.ndarray, color: int) -> np.ndarray:
     band = band.astype(np.float32)
     arr = np.where(
         band < 33,
-        color - 100, 
+        color - 100,
         np.where(
             band > 233,
             color + 100,

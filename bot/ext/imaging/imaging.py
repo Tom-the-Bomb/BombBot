@@ -44,7 +44,7 @@ class Imaging(commands.Cog):
     async def cog_check(self, ctx: BombContext) -> bool:
         if await ctx.bot.is_owner(ctx.author):
             return True
-            
+
         cooldown = self._cooldown.get_bucket(ctx.message)
         if not cooldown:
             return True
@@ -102,7 +102,7 @@ class Imaging(commands.Cog):
 
     @commands.command(name='replace-color', aliases=('replacecolor', 'replace'))
     async def _replace_color(self, ctx: BombContext, image: Optional[ImageConverter], *, options: ReplaceColors) -> None:
-        """Replaces the all instances of the color `target` 
+        """Replaces the all instances of the color `target`
         or any color similar by 20% with the color: `to`
         """
         return await do_command(ctx, image, func=replace_color, target=options.target, to=options.to)
@@ -195,7 +195,7 @@ class Imaging(commands.Cog):
     async def _solarize(self, ctx: BombContext, image: Optional[ImageConverter], *, options: Threshold) -> None:
         """solarizes the provided image, resulting in a burnt effect"""
         return await do_command(ctx, image, func=solarize, threshold=options.threshold, channel=options.channel)
-    
+
     @commands.command(name='spread-cards', aliases=('cards', 'spreadcards'))
     async def _spread_cards(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Spreads the provided image out like playing cards"""
@@ -260,7 +260,7 @@ class Imaging(commands.Cog):
     async def _lego(self, ctx: BombContext, image: Optional[ImageConverter], *, options: LegoSize) -> None:
         """Builds the provided image with lego pieces"""
         return await do_command(ctx, image, func=lego, size=options.size)
-    
+
     @_lego.command(name='speed')
     async def _lego_speed(self, ctx: BombContext, image: Optional[ImageConverter], *, options: LegoSize) -> None:
         """Builds the provided image with lego pieces BUT with a faster algorithm
@@ -344,7 +344,7 @@ class Imaging(commands.Cog):
     async def _cornerdetect(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Detects corners within the image"""
         return await do_command(ctx, image, func=cornerdetect)
-    
+
     @commands.command(name='dilate', aliases=('fatten', 'blowup', 'blow'))
     async def _dilate(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Dilates an image outwards"""
@@ -354,7 +354,7 @@ class Imaging(commands.Cog):
     async def _cartoon(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Cartoonifies an image"""
         return await do_command(ctx, image, func=cartoon)
-        
+
 
 async def setup(bot: BombBot) -> None:
     await bot.add_cog(Imaging(bot))

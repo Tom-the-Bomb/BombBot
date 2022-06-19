@@ -19,9 +19,9 @@ class Loading(Typing):
         return await super().__aenter__()
 
     async def __aexit__(
-        self, 
-        exc_type: Optional[type[BaseException]], 
-        exc_val: Optional[BaseException], 
+        self,
+        exc_type: Optional[type[BaseException]],
+        exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> None:
 

@@ -12,7 +12,7 @@ from ..bot import BombBot
 
 class Games(commands.Cog):
     """Several classic games"""
-    
+
     def __init__(self, bot: BombBot) -> None:
         self.bot = bot
         self.twenty_48_emojis: dict[str, str] = {
@@ -40,19 +40,19 @@ class Games(commands.Cog):
     async def connect4(self, ctx: BombContext, opponent: discord.Member) -> None:
         if await ctx.confirm(opponent, f'{opponent.mention} do you accept to play connect 4?'):
             game = games.ConnectFour(
-                red=ctx.author,         
-                blue=opponent,             
+                red=ctx.author,
+                blue=opponent,
             )
             await game.start(ctx)
-    
+
     @commands.command(name='tictactoe', aliases=('ttt',))
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 20, commands.BucketType.user)
     async def tictactoe(self, ctx: BombContext, opponent: discord.Member) -> None:
         if await ctx.confirm(opponent, f'{opponent.mention} do you accept to play tictactoe?'):
             game = button_games.BetaTictactoe(
-                cross=ctx.author,         
-                circle=opponent,             
+                cross=ctx.author,
+                circle=opponent,
             )
             await game.start(ctx, timeout=600)
 
@@ -69,8 +69,8 @@ class Games(commands.Cog):
     async def chess(self, ctx: BombContext, opponent: discord.Member) -> None:
         if await ctx.confirm(opponent, f'{opponent.mention} do you accept to play chess?'):
             game = button_games.BetaChess(
-                white=ctx.author,         
-                black=opponent,             
+                white=ctx.author,
+                black=opponent,
             )
             await game.start(ctx, timeout=1000)
 
@@ -88,9 +88,9 @@ class Games(commands.Cog):
         async with ctx.typing():
             game = button_games.BetaAkinator()
             await game.start(
-                ctx=ctx, 
-                timeout=300, 
-                back_button=True, 
+                ctx=ctx,
+                timeout=300,
+                back_button=True,
                 delete_button=True,
             )
 
@@ -100,7 +100,7 @@ class Games(commands.Cog):
     async def typerace(self, ctx: BombContext) -> None:
         game = games.TypeRacer()
         await game.start(ctx)
-        
+
     @commands.command(name='battleship', aliases=('bs',))
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 60, commands.BucketType.user)
@@ -154,9 +154,9 @@ class Games(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 20, commands.BucketType.user)
     async def country(
-        self, 
-        ctx: BombContext, 
-        guess_flags: Optional[Literal['-f']], 
+        self,
+        ctx: BombContext,
+        guess_flags: Optional[Literal['-f']],
         light_mode: Optional[Literal['-l']],
         blur: Optional[Literal['-b']],
     ) -> None:

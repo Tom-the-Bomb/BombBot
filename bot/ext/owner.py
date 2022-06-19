@@ -18,17 +18,17 @@ if TYPE_CHECKING:
 
 class Owner(commands.Cog):
     """Owner only utility commands"""
-    
+
     def __init__(self, bot: BombBot) -> None:
         self.bot = bot
         self.runner: Final[Runner] = Runner(reset_after_execute=True)
 
     async def cog_check(self, ctx: BombContext) -> bool:
         return await ctx.bot.is_owner(ctx.author)
-        
+
     def get_extension(self, extension: str, extensions: Optional[list[str]] = None) -> Optional[str]:
         extension = extension.lower().strip()
-        
+
         if not extensions:
             extensions = tuple(self.bot.extensions.keys())
 
@@ -36,7 +36,7 @@ class Owner(commands.Cog):
             return extension
         else:
             if matches := (
-                [entry for entry in extensions if extension in entry] or 
+                [entry for entry in extensions if extension in entry] or
                 difflib.get_close_matches(extension, extensions)
             ):
                 return matches[0]
@@ -56,7 +56,7 @@ class Owner(commands.Cog):
         stream = StringIO()
         with contextlib.redirect_stdout(stream):
             self.runner.execute(
-                code.content, 
+                code.content,
                 streams=[
                     BytesIO(await ctx.author.avatar.read()),
                     BytesIO(await ctx.bot.user.avatar.read()),

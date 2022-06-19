@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from typing import (
-    TYPE_CHECKING, 
-    Awaitable, 
-    Optional, 
-    Callable, 
-    TypeVar, 
-    ParamSpec, 
+    TYPE_CHECKING,
+    Awaitable,
+    Optional,
+    Callable,
+    TypeVar,
+    ParamSpec,
     TypeAlias,
     ClassVar,
 )
@@ -35,7 +35,7 @@ Number: TypeAlias = int | float
 
 def get_asset(file: str) -> str:
     return os.path.join('C:/Users/Tom the Bomb/BombBot/assets/', file)
-    
+
 def chunk(iterable: list[int], *, count: int) -> list[list[int]]:
     return [iterable[i:i + count] for i in range(0, len(iterable), count)]
 
@@ -104,7 +104,7 @@ class ConfirmView(AuthorOnlyView):
         self.value = True
         self.disable_all()
         await interaction.response.edit_message(
-            content=f'{self.author.mention} accepted!', 
+            content=f'{self.author.mention} accepted!',
             view=self,
             allowed_mentions=discord.AllowedMentions.none()
         )
@@ -115,7 +115,7 @@ class ConfirmView(AuthorOnlyView):
         self.value = False
         self.disable_all()
         await interaction.response.edit_message(
-            content=f'{self.author.mention} declined!', 
+            content=f'{self.author.mention} declined!',
             view=self,
             allowed_mentions=discord.AllowedMentions.none()
         )
@@ -148,7 +148,7 @@ class DeleteView(AuthorOnlyView):
         view.message = self.message
 
         await interaction.response.send_message(
-            content='Are you sure you want to delete this?', 
+            content='Are you sure you want to delete this?',
             view=view,
             ephemeral=True,
         )

@@ -21,7 +21,7 @@ class HelpSelect(discord.ui.Select['HelpView']):
     def __init__(self, mapping: HelpMapping) -> None:
 
         options = [
-            discord.SelectOption(label=cog.qualified_name) for cog, cmds in 
+            discord.SelectOption(label=cog.qualified_name) for cog, cmds in
             mapping.items() if cog and cmds
         ]
         super().__init__(
@@ -70,7 +70,7 @@ class BombHelp(commands.HelpCommand):
         )
         embed.set_thumbnail(url=ctx.bot.user.display_avatar.url)
         embed.set_author(
-            name=ctx.author.display_name, 
+            name=ctx.author.display_name,
             icon_url=ctx.author.display_avatar.url,
         )
         return embed
@@ -133,7 +133,7 @@ class BombHelp(commands.HelpCommand):
 
         if params := command.clean_params:
             embed.add_field(name='🔡 Parameters', value=self.get_param_doc(params))
-        
+
         if flags := self.get_flag_doc(command):
             embed.add_field(name='🚩 Flags', value=(flags or '-') + '\n\u200b', inline=False)
 

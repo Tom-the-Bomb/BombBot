@@ -23,7 +23,7 @@ __all__: tuple[str, ...] = (
 @to_array()
 def apply_color_map(_, img: ndarray, *, colormap: str) -> ndarray:
     return cv2.applyColorMap(
-        src=img, 
+        src=img,
         colormap=getattr(cv2, colormap, 0)
     )
 
@@ -34,12 +34,12 @@ def _humanize_colormap(colormap: str) -> str:
 class ColorMapSelect(discord.ui.Select['ColorMapView']):
 
     def __init__(
-        self, 
+        self,
         context: BombContext,
-        argument: Optional[bytes], 
+        argument: Optional[bytes],
         colormaps: list[str]
     ) -> None:
-        
+
         self.context = context
         self.argument = argument
 
@@ -60,14 +60,14 @@ class ColorMapSelect(discord.ui.Select['ColorMapView']):
 
         async with self.context.typing():
             embed = discord.Embed(
-                description=Loading.MESSAGE, 
+                description=Loading.MESSAGE,
                 color=self.context.bot.EMBED_COLOR,
             )
             await interaction.response.edit_message(embed=embed, attachments=[])
 
             output_file: discord.File = await apply_color_map(
-                self.context, 
-                self.argument, 
+                self.context,
+                self.argument,
                 colormap=colormap,
             )
 
@@ -75,17 +75,17 @@ class ColorMapSelect(discord.ui.Select['ColorMapView']):
             embed.set_image(url=f'attachment://{output_file.filename}')
 
             await interaction.edit_original_message(
-                embed=embed, 
+                embed=embed,
                 attachments=[output_file],
             )
 
 class ColorMapView(AuthorOnlyView):
 
     def __init__(
-        self, 
-        context: BombContext, 
-        argument: Optional[bytes], 
-        *, 
+        self,
+        context: BombContext,
+        argument: Optional[bytes],
+        *,
         timeout: Optional[float] = None,
     ) -> None:
 

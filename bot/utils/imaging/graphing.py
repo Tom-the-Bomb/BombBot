@@ -46,7 +46,7 @@ def boxplot(_, data: list[float], *, fill_boxes: bool = True) -> discord.File:
 
     for median in  out.get('medians', ()):
         median.set(color='#b54d6a', linewidth=2)
-    
+
     buffer = BytesIO()
     plt.savefig(buffer)
     plt.close()

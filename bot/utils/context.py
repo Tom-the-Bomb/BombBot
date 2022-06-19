@@ -14,10 +14,10 @@ class BombContext(commands.Context['BombBot']):
 
     async def reply(self, content: Any = None, **kwargs: Any) -> discord.Message:
         mention_author = kwargs.pop('mention_author', False)
-        
+
         return await super().reply(
-            content=content, 
-            mention_author=mention_author, 
+            content=content,
+            mention_author=mention_author,
             **kwargs
         )
 
@@ -30,7 +30,7 @@ class BombContext(commands.Context['BombBot']):
                 kwargs['view'] = view
 
         result = await super().send(content=content, **kwargs)
-    
+
         if view := kwargs.get('view'):
             view.message = result
         return result
@@ -43,7 +43,7 @@ class BombContext(commands.Context['BombBot']):
 
         if await view.wait():
             await msg.edit(
-                content=f'Looks like {user.mention} did not respond.', 
+                content=f'Looks like {user.mention} did not respond.',
                 allowed_mentions=discord.AllowedMentions.none()
             )
             return False

@@ -35,7 +35,7 @@ class General(commands.Cog):
 
         cs = ctx.bot.code_stats
         fc, lc, cl, fn, co = cs['files'], cs['lines'], cs['classes'], cs['funcs'], cs['coros']
-        
+
         embed = discord.Embed(
             timestamp=discord.utils.utcnow(),
             color=ctx.bot.EMBED_COLOR,

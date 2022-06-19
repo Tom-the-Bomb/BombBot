@@ -7,7 +7,7 @@ from wand.sequence import SingleImage
 
 from ..helpers import get_asset
 from .image import (
-    wand_circle_mask, 
+    wand_circle_mask,
     wand_image,
     wand_circular,
 )
@@ -146,7 +146,7 @@ def posterize(_, img: I, *, static: bool = False, layers: int = 3) -> I:
 @wand_image()
 def solarize(_, img: I, *, threshold: float = 0.5, channel: str = 'RGB') -> I:
     img.solarize(
-        threshold=threshold * img.quantum_range, 
+        threshold=threshold * img.quantum_range,
         channel=channel,
     )
     return img
@@ -165,7 +165,7 @@ def arc(_, img: I, degree: int = 180) -> I:
 def floor(_, img: I) -> I:
     img.virtual_pixel = 'tile'
     img.distort(
-        method='perspective', 
+        method='perspective',
         arguments=(
             0, 0, img.width * 0.3, img.height * 0.5,
             img.width, 0, img.width * 0.8, img.height * 0.5,
@@ -182,7 +182,7 @@ def increasing_wave(_, img: Image) -> Image:
     for i in range(4, 30, 2):
         with img.clone() as clone:
             clone.wave(
-                amplitude=img.height / 24, 
+                amplitude=img.height / 24,
                 wave_length=img.width / i,
             )
             clone.dispose = 'background'
@@ -216,7 +216,7 @@ def bulge(_, img: Image) -> Image:
             clone.dispose = 'background'
             base.sequence.append(clone)
         del clone
-    
+
     base.sequence.extend(reversed(base.sequence))
     return base
 
@@ -230,7 +230,7 @@ def swirl(_, img: Image) -> Image:
         img.dispose = 'background'
         base.sequence.append(img)
     del img
-    
+
     base.sequence.extend(reversed(base.sequence))
     return base
 
@@ -261,20 +261,20 @@ def fisheye(_, img: I, *, shade: bool = True, operator: str = 'screen') -> I:
     img.distort('barrel', (1, 0, 0, 0.1))
     img.trim()
     wand_circular(img, mask=WAND_CIRCLE_MASK)
-    
+
     if shade:
         with WAND_SPHERE_OVERLAY.clone() as overlay:
             overlay.resize(*img.size, filter='lanczos')
             img.composite(overlay, left=0, top=0, operator=operator)
         del overlay
-    
+
     return img
 
 @wand_image(width=400, process_all_frames=False)
 def bomb(_, img: I) -> I:
     if len(img.sequence) == 1 or img.format.lower() != 'gif':
         img.sequence[0].delay = 200
-        
+
     with Image(filename=get_asset('bomb.gif')) as bomb:
         if img.size != bomb.size:
             bomb.resize(*img.size, filter='lanczos')
@@ -331,7 +331,7 @@ def cube(_, img: Image) -> Image:
         top.rotate(-30, reset_coords=True)
         top.trim()
         base = Image(
-            width=top.width, 
+            width=top.width,
             height=top.height * 2,
             background='transparent'
         )
