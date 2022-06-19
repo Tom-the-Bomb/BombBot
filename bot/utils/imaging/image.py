@@ -61,6 +61,8 @@ if TYPE_CHECKING:
     WandFunction: TypeAlias = Callable[WandParams, R_]
     WandThreaded: TypeAlias = Callable[WandParams, Awaitable[R_]]
 
+    GraphFn: TypeAlias = Callable[Concatenate[C, P], Awaitable[discord.File]]
+
     Duration: TypeAlias = list[int] | int | None
 
 __all__: tuple[str, ...] = (
@@ -523,9 +525,9 @@ def to_array(img_mode: str = 'RGB', arr_mode: int = cv2.COLOR_RGB2BGR) -> Callab
 
 
 async def _do_command_body(
-    ctx: BombContext, 
-    image: Optional[str],
-    func: WandThreaded | PillowThreaded,
+    ctx: BombContext,
+    image: Any,
+    func: WandThreaded | PillowThreaded | GraphFn,
     **kwargs: Any,
 ) -> None:
 
@@ -542,9 +544,9 @@ async def _do_command_body(
     )
 
 async def do_command(
-    ctx: BombContext, 
-    image: Optional[str],
-    func: WandThreaded | PillowThreaded,
+    ctx: BombContext,
+    image: Any,
+    func: WandThreaded | PillowThreaded | GraphFn,
     *,
     load: bool = True,
     **kwargs: Any,
