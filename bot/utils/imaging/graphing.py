@@ -75,27 +75,41 @@ def boxplot(_, data: list[float], *, fill_boxes: bool = True) -> discord.File:
     buffer.seek(0)
     return discord.File(buffer, 'graph.png')
 
+def _clean_implicit_mul(equation: str) -> str:
+    def _sub_mul(val: re.Match) -> str:
+        parts = list(val.group())
+        parts.insert(-1, "*")
+        return ''.join(parts)
+
+    equation = re.sub(r'\s+', '', equation)
+    equation = re.sub(r'(?<=[0-9x)])x', _sub_mul, equation)
+    equation = equation.replace(')(', ')*(')
+    return equation
+
 @to_thread
 def plotfn(_, equation: str) -> discord.File:
-    def _mul(val):
-        val = list(val.group())
-        val.insert(-1, "*")
-        return "".join(val)
+    fig: Figure = plt.figure()
+    ax: Axes = fig.add_subplot(1, 1, 1)
+    ax.set_title(f'y = {equation}', pad=15)
 
-    equation = equation.replace(' ', '')
-    equation = re.sub(r"(?<=[0-9x)])x", _mul, equation)
-    equation = equation.replace(")(", ")*(")
+    fx = Expression(equation, ('x',))
+    _min = fx(-40)
+    _max = fx(40)
 
-    x = np.linspace(-100, 100, 50000)
+    equation = _clean_implicit_mul(equation)
+    x = np.linspace(-100, 100, 5000)
 
-    fn = Expression(equation, ["x"])
-    y = [fn(i) for i in x]
+    ax.spines['left'].set_position('center')
+    ax.spines['bottom'].set_position('zero')
+    ax.spines['right'].set_color('none')
+    ax.spines['top'].set_color('none')
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
 
-    plt.xlim((-40, 40))
-    plt.ylim((-40, 40))
-    buffer = BytesIO()
-
-    plt.plot(x, y)
+    fx = np.vectorize(fx)
+    ax.set_xlim(-40, 40)
+    ax.set_ylim(_min, _max)
+    ax.plot(x, fx(x))
 
     buffer = BytesIO()
     plt.savefig(buffer)

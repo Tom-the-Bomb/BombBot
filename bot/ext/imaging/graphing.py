@@ -35,11 +35,14 @@ class Graphing(commands.Cog):
         return await do_command(ctx, numbers, func=boxplot)
 
     @commands.command(name='plot', aliases=('line-graph', 'graph'))
-    async def _plot(self, ctx: BombContext, *numbers: float) -> None:
+    async def _plot(self, ctx: BombContext, *, equation: str) -> None:
         """Plots the provided equation out.
         Ex: `{prefix}plot 2x+1`
         """
-        return await do_command(ctx, numbers, func=plotfn)
+        try:
+            return await do_command(ctx, equation, func=plotfn)
+        except TypeError:
+            await ctx.send(f'Provided equation was invalid; the only variable present must be `x`.')
 
 async def setup(bot: BombBot) -> None:
     await bot.add_cog(Graphing(bot))
