@@ -110,7 +110,7 @@ def _clean_implicit_mul(equation: str) -> str:
     return equation
 
 @to_thread
-def plotfn(_, equation: str, *, xrange: tuple[int, int] = (-50, 50)) -> discord.File:
+def plotfn(_, equation: str, *, xrange: tuple[int, int] = (-20, 20)) -> discord.File:
 
     fig: Figure = plt.figure()
     ax: Axes = fig.add_subplot(1, 1, 1)
