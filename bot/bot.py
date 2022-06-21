@@ -12,6 +12,7 @@ import json
 import logging
 import traceback
 from math import ceil
+from io import BytesIO
 from inspect import getdoc
 from datetime import datetime
 
@@ -249,6 +250,20 @@ class BombBot(commands.Bot):
                         return byt
         except Exception:
             return None
+
+    async def render_latex(self, latex: str, *, light_mode: bool = False) -> discord.File:
+        LATEX_URL = 'https://latex.codecogs.com/png.latex?%5Cdpi%7B300%7D%20%5Chuge%20'
+
+        color = ('white', 'black')[light_mode]
+        url = LATEX_URL + r'{\color{' + color + r'}' + latex + r'}'
+        try:
+            async with self.session.get(url) as resp:
+                buffer = BytesIO(await resp.read())
+                return discord.File(buffer, 'latex.png')
+        except RecursionError as recur:
+            raise recur
+        except Exception:
+            return await self.render_latex(latex)
 
     async def on_command_error(self, ctx: BombContext, error: Exception) -> Optional[discord.Message]:
 

@@ -123,7 +123,8 @@ class BombHelp(commands.HelpCommand):
                 return doc
 
     def get_command_embed(self, command: commands.Command) -> discord.Embed:
-        help_doc = command.help.format(prefix=self.context.clean_prefix)
+        help_doc = command.help or '(no description)'
+        help_doc = help_doc.format(prefix=self.context.clean_prefix)
         signature = self.get_command_signature(command)
         aliases = '` `'.join(command.aliases) or 'none'
 

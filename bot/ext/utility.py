@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import discord
 from discord.ext import commands
 from jishaku.codeblocks import codeblock_converter
 
@@ -29,6 +30,15 @@ class Utility(commands.Cog):
             await ctx.send(await ctx.bot.post_mystbin(response.output))
         else:
             await ctx.send(output)
+
+    @commands.command(name='latex', aliases=('tex',))
+    async def latex(self, ctx: BombContext, *, latex: codeblock_converter) -> None:
+        """Renders the provided latex equation"""
+
+        file = await ctx.bot.render_latex(latex.content)
+        embed = discord.Embed(color=ctx.bot.EMBED_COLOR)
+        embed.set_image(url=f'attachment://{file.filename}')
+        await ctx.send(file=file, embed=embed)
 
 async def setup(bot: BombBot) -> None:
     await bot.add_cog(Utility(bot))

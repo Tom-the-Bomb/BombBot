@@ -104,9 +104,10 @@ def plotfn(_, equation: str) -> discord.File:
     ax.spines['top'].set_color('none')
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.set_ylim(*ax.get_xlim())
+
     ax.plot(x, fx(x))
     plt.axis('equal')
+    ax.set_ylim(*ax.get_xlim())
 
     buffer = BytesIO()
     plt.savefig(buffer)
