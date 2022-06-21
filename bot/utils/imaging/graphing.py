@@ -88,28 +88,25 @@ def _clean_implicit_mul(equation: str) -> str:
 
 @to_thread
 def plotfn(_, equation: str) -> discord.File:
+
     fig: Figure = plt.figure()
     ax: Axes = fig.add_subplot(1, 1, 1)
     ax.set_title(f'y = {equation}', pad=15)
-
-    fx = Expression(equation, ('x',))
-    _min = fx(-40)
-    _max = fx(40)
-
     equation = _clean_implicit_mul(equation)
-    x = np.linspace(-100, 100, 5000)
 
+    fx = np.vectorize(Expression(equation, ['x']))
+    x = np.linspace(-10, 10, 1000)
+
+    ax.set_aspect('equal', adjustable='box')
     ax.spines['left'].set_position('center')
     ax.spines['bottom'].set_position('zero')
     ax.spines['right'].set_color('none')
     ax.spines['top'].set_color('none')
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-
-    fx = np.vectorize(fx)
-    ax.set_xlim(-40, 40)
-    ax.set_ylim(_min, _max)
+    ax.set_ylim(*ax.get_xlim())
     ax.plot(x, fx(x))
+    plt.axis('equal')
 
     buffer = BytesIO()
     plt.savefig(buffer)
