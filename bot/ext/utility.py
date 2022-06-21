@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Literal
 
 import discord
 from discord.ext import commands
@@ -32,10 +32,13 @@ class Utility(commands.Cog):
             await ctx.send(output)
 
     @commands.command(name='latex', aliases=('tex',))
-    async def latex(self, ctx: BombContext, *, latex: codeblock_converter) -> None:
-        """Renders the provided latex equation"""
+    async def latex(self, ctx: BombContext, light_mode: Optional[Literal['-l']], *, latex: codeblock_converter) -> None:
+        """Renders the provided latex equation
 
-        file = await ctx.bot.render_latex(latex.content)
+        Specify the optional `-l` option if you are using discord light mode (white text)
+        """
+
+        file = await ctx.bot.render_latex(latex.content, light_mode=bool(light_mode))
         embed = discord.Embed(color=ctx.bot.EMBED_COLOR)
         embed.set_image(url=f'attachment://{file.filename}')
         await ctx.send(file=file, embed=embed)

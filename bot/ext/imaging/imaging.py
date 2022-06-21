@@ -168,11 +168,11 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=turn)
 
     @commands.command(name='fisheye', aliases=('sphere',))
-    async def _fisheye(self, ctx: BombContext, image: Optional[ImageConverter], shade: Optional[Literal['--no-shade']]) -> None:
+    async def _fisheye(self, ctx: BombContext, image: Optional[ImageConverter], shade: Optional[Literal['-ns']]) -> None:
         """Distorts the provided image with fisheye, basically making the image look sphere like
         Additionally a shading overlay is put on top of the image to give it a more 3D look
 
-        The optional flag: `--no-shade` can be passed to tell it to not shade the image
+        Specify the optional `-ns` optioan to tell it to not shade the image
         """
         return await do_command(ctx, image, func=fisheye, shade=not shade)
 

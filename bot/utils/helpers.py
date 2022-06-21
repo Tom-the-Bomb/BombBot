@@ -9,7 +9,12 @@ from typing import (
     ParamSpec,
     TypeAlias,
     ClassVar,
+    get_args,
+    get_origin,
+    Union,
+    Any,
 )
+from types import NoneType
 import functools
 import asyncio
 import re
@@ -18,6 +23,7 @@ import os
 import discord
 
 __all__: tuple[str, ...] = (
+    'is_optional_field',
     'chunk',
     'to_thread',
     'truncate',
@@ -32,6 +38,9 @@ if TYPE_CHECKING:
     T = TypeVar('T')
 
 Number: TypeAlias = int | float
+
+def is_optional_field(tp: Any) -> bool:
+    return get_origin(tp) is Union and NoneType in get_args(tp)
 
 def get_asset(file: str) -> str:
     return os.path.join('C:/Users/Tom the Bomb/BombBot/assets/', file)

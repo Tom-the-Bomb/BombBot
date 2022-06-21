@@ -1,12 +1,20 @@
 from __future__ import annotations
 
-from typing import ClassVar, Optional, Mapping, TypeAlias, TYPE_CHECKING
+from typing import (
+    _GenericAlias,
+    ClassVar,
+    Optional,
+    Mapping,
+    TypeAlias,
+    get_args,
+    TYPE_CHECKING,
+)
 import inspect
 
 import discord
 from discord.ext import commands
 
-from ..utils.helpers import AuthorOnlyView
+from ..utils.helpers import AuthorOnlyView, is_optional_field
 from ..utils.imaging import ImageConverter
 
 if TYPE_CHECKING:
@@ -97,10 +105,23 @@ class BombHelp(commands.HelpCommand):
 
         return embed
 
+    def _format_literal_option(self, option: _GenericAlias) -> str:
+        if is_optional_field(option):
+            prefix = '(Optional) '
+        else:
+            prefix = ''
+
+        option = get_args(option)[0]
+        if isinstance(option, _GenericAlias):
+            option = get_args(option)[0]
+
+        return f'{prefix}`{option}`'
+
     def _format_param(self, name: str, param: commands.Parameter) -> str:
         annotation = (
             'A valid `image` source, optional\n(by default the author\'s avatar)' if param.converter in (Optional[ImageConverter], ImageConverter)
             else 'see "Flags" below' if name == 'options'
+            else self._format_literal_option(param.converter) if isinstance(param.converter, _GenericAlias)
             else getattr(param.converter, '__name__', param.converter)
         )
 

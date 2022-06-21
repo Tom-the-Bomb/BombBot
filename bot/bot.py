@@ -251,13 +251,14 @@ class BombBot(commands.Bot):
         except Exception:
             return None
 
-    async def render_latex(self, latex: str, *, light_mode: bool = False) -> discord.File:
+    async def render_latex(self, latex: str, *, light_mode: bool = False, session: Optional[ClientSession] = None) -> discord.File:
         LATEX_URL = 'https://latex.codecogs.com/png.latex?%5Cdpi%7B300%7D%20%5Chuge%20'
 
+        session = session or self.session
         color = ('white', 'black')[light_mode]
         url = LATEX_URL + r'{\color{' + color + r'}' + latex + r'}'
         try:
-            async with self.session.get(url) as resp:
+            async with session.get(url) as resp:
                 buffer = BytesIO(await resp.read())
                 return discord.File(buffer, 'latex.png')
         except RecursionError as recur:

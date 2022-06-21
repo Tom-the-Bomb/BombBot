@@ -38,6 +38,7 @@ class Games(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 20, commands.BucketType.user)
     async def connect4(self, ctx: BombContext, opponent: discord.Member) -> None:
+        """Starts a connect-4 game with the provided `opponent`"""
         if await ctx.confirm(opponent, f'{opponent.mention} do you accept to play connect 4?'):
             game = games.ConnectFour(
                 red=ctx.author,
@@ -49,6 +50,7 @@ class Games(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 20, commands.BucketType.user)
     async def tictactoe(self, ctx: BombContext, opponent: discord.Member) -> None:
+        """Starts a tictactoe game with the provided `opponent`"""
         if await ctx.confirm(opponent, f'{opponent.mention} do you accept to play tictactoe?'):
             game = button_games.BetaTictactoe(
                 cross=ctx.author,
@@ -60,6 +62,7 @@ class Games(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 20, commands.BucketType.user)
     async def hangman(self, ctx: BombContext):
+        """Starts a hangman game (singleplayer)"""
         game = button_games.BetaHangman()
         await game.start(ctx, timeout=600)
 
@@ -67,6 +70,12 @@ class Games(commands.Cog):
     @commands.max_concurrency(2, commands.BucketType.channel)
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def chess(self, ctx: BombContext, opponent: discord.Member) -> None:
+        """Starts a chess game with the provided `opponent`
+
+        💡 Moves are made using a modal, with 2 textboxes (in `uci` format):
+        1. (From) Enter the from coordinate. (Ex: `a2`)
+        2. (To) Enter the coordinate to move to. (Ex: `a4`)
+        """
         if await ctx.confirm(opponent, f'{opponent.mention} do you accept to play chess?'):
             game = button_games.BetaChess(
                 white=ctx.author,
@@ -78,6 +87,10 @@ class Games(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 20, commands.BucketType.user)
     async def twenty48(self, ctx: BombContext, render_image: Optional[Literal['-r']]) -> None:
+        """Starts a 2048 game (singleplayer)
+
+        - Specify the optional `-r` option to choose to render the board as an *image*
+        """
         game = button_games.BetaTwenty48(self.twenty_48_emojis, render_image=bool(render_image))
         await game.start(ctx, timeout=600, delete_button=True)
 
@@ -85,6 +98,7 @@ class Games(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 30, commands.BucketType.user)
     async def akinator(self, ctx: BombContext) -> None:
+        """Starts an Akinator Game"""
         async with ctx.typing():
             game = button_games.BetaAkinator()
             await game.start(
@@ -98,6 +112,9 @@ class Games(commands.Cog):
     @commands.max_concurrency(2, commands.BucketType.channel)
     @commands.cooldown(1, 20, commands.BucketType.channel)
     async def typerace(self, ctx: BombContext) -> None:
+        """Starts a multiplayer typerace game in the channel
+        the game ends upon the first 3 responses above 90% accuracy
+        """
         game = games.TypeRacer()
         await game.start(ctx)
 
@@ -105,6 +122,9 @@ class Games(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def battleship(self, ctx: BombContext, opponent: discord.Member) -> None:
+        """Starts a battleship game with the provided `opponent`
+        occurs in respective DMs
+        """
         no_mentions = discord.AllowedMentions.none()
         if ctx.author in self.is_in_battleship:
             return await ctx.send(f'{ctx.author.mention} is already in a game!', allowed_mentions=no_mentions)
@@ -126,6 +146,7 @@ class Games(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 20, commands.BucketType.user)
     async def wordle(self, ctx: BombContext) -> None:
+        """Starts a wordle game (singleplayer)"""
         game = button_games.BetaWordle()
         await game.start(ctx)
 
@@ -133,20 +154,29 @@ class Games(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 20, commands.BucketType.user)
     async def memory_game(self, ctx: BombContext) -> None:
+        """Starts a memory game (singleplayer)
+        where you have to match pairs of "items" to each other
+        """
         game = button_games.MemoryGame()
         await game.start(ctx, timeout=300)
 
     @commands.command(name='rockpaperscissors', aliases=('rps',))
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def rps(self, ctx: BombContext, member: Optional[discord.Member] = None) -> None:
-        game = button_games.BetaRockPaperScissors(member)
+    async def rps(self, ctx: BombContext, opponent: Optional[discord.Member] = None) -> None:
+        """Starts a game of Rock paper scissors.
+        If `opponent` is not specified, it defaults to playing against the bot.
+        """
+        game = button_games.BetaRockPaperScissors(opponent)
         await game.start(ctx, timeout=120)
 
     @commands.command(name='reaction', aliases=('react',))
     @commands.max_concurrency(1, commands.BucketType.channel)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def reaction(self, ctx: BombContext) -> None:
+        """Starts a reaction speed test game (multiplayer)
+        Whoever clicks first, wins!
+        """
         game = button_games.BetaReactionGame()
         await game.start(ctx, timeout=60)
 
@@ -160,6 +190,12 @@ class Games(commands.Cog):
         light_mode: Optional[Literal['-l']],
         blur: Optional[Literal['-b']],
     ) -> None:
+        """Starts a country guessing game (singleplayer)
+
+        - Specify the optional `-f` option to *guess flags* instead
+        - Specify the optional `-l` option if you are on discord light mode (black assets)
+        - Specify the optional `-b` option to blur the image (harder)
+        """
         game = button_games.BetaCountryGuesser(
             is_flags=bool(guess_flags),
             hard_mode=bool(blur),
@@ -171,6 +207,9 @@ class Games(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 20, commands.BucketType.user)
     async def number_slider(self, ctx: BombContext, *, count: commands.Range[int, 1, 5] = 4) -> None:
+        """Starts a number slider game (singleplayer)
+        Slide the numbers back into ascending order!
+        """
         game = button_games.NumberSlider(count)
         await game.start(ctx, timeout=600)
 
@@ -178,6 +217,11 @@ class Games(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 20, commands.BucketType.user)
     async def lights_out(self, ctx: BombContext, *, count: commands.Range[int, 1, 5] = 4) -> None:
+        """
+        Starts a Lights-out game (singleplayer)
+        Each click will toggle inverse itself and all the 4 tiles adjacent to itself
+        Turn off all the lights!
+        """
         game = button_games.LightsOut(count)
         await game.start(ctx, timeout=600)
 
@@ -185,6 +229,7 @@ class Games(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 20, commands.BucketType.user)
     async def boggle(self, ctx: BombContext) -> None:
+        """Starts a game of boggle (singleplayer)"""
         game = button_games.Boggle()
         await game.start(ctx, timeout=600)
 
