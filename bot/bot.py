@@ -294,7 +294,7 @@ class BombBot(commands.Bot):
             return await ctx.send(error.message)
 
         elif isinstance(error, commands.BadLiteralArgument):
-            return await ctx.send(f"input value for `{error.param.name}` must be either (`{'` `'.join(error.literals)}`) or nothing")
+            return await ctx.send(f"input value for `{error.param.name}` must be either (`{'`, `'.join(error.literals)}`) or nothing")
 
         elif isinstance(error, discord.HTTPException) and error.status == 413:
             return await ctx.send(f'Woops, the outputted image was too large :(')

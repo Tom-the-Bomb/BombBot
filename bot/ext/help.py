@@ -14,7 +14,7 @@ import inspect
 import discord
 from discord.ext import commands
 
-from ..utils.helpers import AuthorOnlyView, is_optional_field
+from ..utils.helpers import AuthorOnlyView, DeleteView, is_optional_field
 from ..utils.imaging import ImageConverter
 
 if TYPE_CHECKING:
@@ -55,6 +55,9 @@ class HelpView(AuthorOnlyView):
         self.commands_mapping = mapping
 
         self.add_item(HelpSelect(self.commands_mapping))
+
+        self.delview = DeleteView(self.author)
+        self.add_item(self.delview.delete_button)
 
     @discord.ui.button(label='Home', emoji='🏠', style=discord.ButtonStyle.gray, row=1)
     async def home_button(self, interaction: discord.Interaction, _) -> None:
@@ -189,7 +192,8 @@ class BombHelp(commands.HelpCommand):
         channel = self.get_destination()
         view = HelpView(self, mapping, author=self.context.author)
 
-        await channel.send(embed=embed, view=view)
+        message = await channel.send(embed=embed, view=view)
+        view.delview.message = message
 
     async def send_command_help(self, command: commands.Command) -> None:
         embed = self.get_command_embed(command)
