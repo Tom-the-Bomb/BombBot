@@ -28,6 +28,10 @@ class Imaging(commands.Cog):
             rate=1, per=7, type=commands.BucketType.user,
         )
 
+        for command in self.walk_commands():
+            commands.cooldown(1, 7, commands.BucketType.user)(command)
+            commands.max_concurrency(2, commands.BucketType.user)(command)
+
     async def cog_unload(self) -> None:
         """Reloads the respective imaging modules on extension reload"""
         from importlib import reload
@@ -40,19 +44,6 @@ class Imaging(commands.Cog):
         reload(pil_functions)
         reload(wand_functions)
         reload(cv_functions)
-
-    async def cog_check(self, ctx: BombContext) -> bool:
-        if await ctx.bot.is_owner(ctx.author):
-            return True
-
-        cooldown = self._cooldown.get_bucket(ctx.message)
-        if not cooldown:
-            return True
-        retry_after = cooldown.update_rate_limit()
-
-        if retry_after:
-            raise commands.CommandOnCooldown(cooldown, retry_after, commands.BucketType.user)
-        return True
 
     # wand functions
     @commands.command(name='blur')

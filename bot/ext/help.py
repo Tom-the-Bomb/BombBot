@@ -168,6 +168,10 @@ class BombHelp(commands.HelpCommand):
             cooldown_desc = f'`{cd.rate}` per every `{round(cd.per)}s` for every **{command._buckets.type.name}**'
             embed.add_field(name='Cooldown', value=cooldown_desc, inline=False)
 
+        if mc := command._max_concurrency:
+            mc_desc = f'`{mc.number}` times per **{mc.per.name}**'
+            embed.add_field(name='Max Concurrency', value=mc_desc, inline=False)
+
         embed.set_footer(
             text='[ ] arguments are optional < > are required',
             icon_url=self.context.author.avatar.url,
