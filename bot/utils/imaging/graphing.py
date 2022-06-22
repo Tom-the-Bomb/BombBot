@@ -63,20 +63,22 @@ def boxplot(_, data: list[float], *, fill_boxes: bool = True) -> discord.File:
     for median in  out.get('medians', ()):
         median.set(color='#b54d6a', linewidth=2)
 
+    x = ax.get_xticks()[1]
+
     _min, _max = min(data), max(data)
-    ax.text(_min, 1.4, f'Min: {_min}',
+    ax.text(x, 1.4, f'Min: {_min}',
         fontproperties=CODEFONT,
     )
-    ax.text(_min, 1.34, f'Max: {_max}',
+    ax.text(x, 1.34, f'Max: {_max}',
         fontproperties=CODEFONT,
     )
-    ax.text(_min, 1.28, f'Range: {_max - _min}',
+    ax.text(x, 1.28, f'Range: {_max - _min}',
         fontproperties=CODEFONT,
     )
-    ax.text(_min, 1.22, f'Mean: {mean(data)}',
+    ax.text(x, 1.22, f'Mean: {mean(data)}',
         fontproperties=CODEFONT,
     )
-    ax.text(_min, 1.16, f'Mode: {mode(data)}',
+    ax.text(x, 1.16, f'Mode: {mode(data)}',
         fontproperties=CODEFONT,
     )
 
@@ -85,16 +87,16 @@ def boxplot(_, data: list[float], *, fill_boxes: bool = True) -> discord.File:
     except StatisticsError:
         q1 = q2 = q3 = data[0]
 
-    ax.text(_min, 0.8, f'Q1: {q1}',
+    ax.text(x, 0.8, f'Q1: {q1}',
         fontproperties=CODEFONT,
     )
-    ax.text(_min, 0.74, f'Q2: {q2}',
+    ax.text(x, 0.74, f'Q2: {q2}',
         fontproperties=CODEFONT,
     )
-    ax.text(_min, 0.68, f'Q3: {q3}',
+    ax.text(x, 0.68, f'Q3: {q3}',
         fontproperties=CODEFONT,
     )
-    ax.text(_min, 0.62, f'IQR: {q3 - q1}',
+    ax.text(x, 0.62, f'IQR: {q3 - q1}',
         fontproperties=CODEFONT,
     )
 
