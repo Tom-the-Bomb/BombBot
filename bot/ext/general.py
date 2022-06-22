@@ -57,7 +57,10 @@ class General(commands.Cog):
                 f'Code-stats:\n  - Files: {fc:,}\n  - Lines: {lc:,}\n  - Classes: {cl:,}\n  - Funcs: {fn:,}\n  - Coros: {co:,}\n```'
             )
         )
-        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
+        embed.set_author(
+            name=ctx.author.display_name,
+            icon_url=ctx.author.avatar.url,
+        )
         embed.set_thumbnail(url=ctx.bot.user.avatar.url)
         await ctx.reply(embed=embed)
 

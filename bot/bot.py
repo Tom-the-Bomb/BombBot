@@ -281,7 +281,7 @@ class BombBot(commands.Bot):
         elif isinstance(error, commands.CommandOnCooldown):
             return await ctx.send(
                 f'You are on cooldown! Try again after `{ceil(error.retry_after)}s`\n\n'
-                f'`{ctx.command.qualified_name}` can only be used every `{round(error.cooldown.per)}s` per **{error.type.name}**'
+                f'`{ctx.command.qualified_name}` can only be used `{error.cooldown.rate}` times per `{round(error.cooldown.per)}s` for every **{error.type.name}**'
             )
 
         elif isinstance(error, commands.MaxConcurrencyReached):

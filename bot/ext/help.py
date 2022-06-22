@@ -127,7 +127,7 @@ class BombHelp(commands.HelpCommand):
 
         string = f'• `{name}` {annotation}'
         if param.default is not inspect._empty:
-            string += f' (by default {param.default}'
+            string += f' (by default {param.default})'
         return string
 
     def get_param_doc(self, params: dict[str, commands.Parameter]) -> str:
@@ -136,7 +136,7 @@ class BombHelp(commands.HelpCommand):
         ) or '-'
         return doc + '\n\u200b'
 
-    def get_flag_doc(self, command: commands.Command) -> str:
+    def get_flag_doc(self, command: commands.Command) -> Optional[str]:
         if flags := command.clean_params.get('options'):
             if issubclass(converter := flags.converter, commands.FlagConverter):
                 doc = inspect.getdoc(converter).strip() or '-'
@@ -162,7 +162,16 @@ class BombHelp(commands.HelpCommand):
 
         if isinstance(command, commands.Group):
             subcommands = '`\n`'.join(cmd.qualified_name for cmd in command.commands) or 'none'
-            embed.add_field(name='Subcommands', value=f'`{subcommands}`')
+            embed.add_field(name='Subcommands', value=f'`{subcommands}`', inline=False)
+
+        if cd := command.cooldown:
+            cooldown_desc = f'`{cd.rate}` per every `{round(cd.per)}s` for every **{command._buckets.type.name}**'
+            embed.add_field(name='Cooldown', value=cooldown_desc, inline=False)
+
+        embed.set_footer(
+            text='[ ] arguments are optional < > are required',
+            icon_url=self.context.author.avatar.url,
+        )
         return embed
 
     async def send_bot_help(self, mapping: HelpMapping) -> None:

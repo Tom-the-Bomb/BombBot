@@ -7,6 +7,7 @@ from statistics import (
     mean,
     mode,
     quantiles,
+    StatisticsError,
 )
 
 import numpy as np
@@ -46,6 +47,7 @@ def boxplot(_, data: list[float], *, fill_boxes: bool = True) -> discord.File:
         x=data,
         vert=False,
         showmeans=True,
+        labels=['A'],
         patch_artist=fill_boxes,
     )
 
@@ -78,7 +80,11 @@ def boxplot(_, data: list[float], *, fill_boxes: bool = True) -> discord.File:
         fontproperties=CODEFONT,
     )
 
-    q1, q2, q3 = quantiles(data, n=4)
+    try:
+        q1, q2, q3 = quantiles(data, n=4)
+    except StatisticsError:
+        q1 = q2 = q3 = data[0]
+
     ax.text(_min, 0.8, f'Q1: {q1}',
         fontproperties=CODEFONT,
     )
