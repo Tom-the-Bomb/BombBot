@@ -15,6 +15,7 @@ from math import ceil
 from io import BytesIO
 from inspect import getdoc
 from datetime import datetime
+from urllib.parse import quote
 
 import jishaku
 import discord
@@ -256,7 +257,7 @@ class BombBot(commands.Bot):
 
         session = session or self.session
         color = ('white', 'black')[light_mode]
-        url = LATEX_URL + r'{\color{' + color + r'}' + latex + r'}'
+        url = LATEX_URL + r'{\color{' + color + r'}' + quote(latex) + r'}'
         try:
             async with session.get(url) as resp:
                 buffer = BytesIO(await resp.read())
