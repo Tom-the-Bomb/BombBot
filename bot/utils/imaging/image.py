@@ -124,8 +124,11 @@ async def run_threaded(
 def check_frame_amount(img: Image.Image | WandImage, max_frames: int = MAX_FRAMES) -> None:
     if isinstance(img, Image.Image):
         n_frames = getattr(img, 'n_frames', 1)
-    else:
+    elif isinstance(img, WandImage):
         n_frames = len(img.sequence)
+    else:
+        n_frames = len(img)
+
     if n_frames > max_frames:
         raise TooManyFrames(n_frames, max_frames)
 
