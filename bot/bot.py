@@ -40,8 +40,7 @@ if TYPE_CHECKING:
 
 
 class BombBot(commands.Bot):
-    """A multipurpose discord bot featuring numerous games and image processing command among many others
-    """
+    """A multipurpose discord bot featuring numerous games and image processing command among many others"""
     EMBED_COLOR: ClassVar[int] = 0x2F3136
 
     def __init__(self, **options: Any) -> None:
@@ -93,16 +92,7 @@ class BombBot(commands.Bot):
     def setup_logging(self) -> logging.Logger:
         logger = logging.getLogger('discord')
         logger.setLevel(logging.INFO)
-
-        handler = logging.StreamHandler()
-        handler.setFormatter(
-            logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s')
-        )
-        logger.addHandler(handler)
-
         self.logger: logging.Logger = logger
-        self.logger.info('--- INITIALIZED ---')
-
         return self.logger
 
     def load_config(self) -> Config:
