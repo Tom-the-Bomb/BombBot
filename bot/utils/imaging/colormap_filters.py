@@ -74,7 +74,7 @@ class ColorMapSelect(discord.ui.Select['ColorMapView']):
             embed.description = f'Applied `{_humanize_colormap(colormap)}` to provided image.'
             embed.set_image(url=f'attachment://{output_file.filename}')
 
-            await interaction.edit_original_message(
+            await interaction.edit_original_response(
                 embed=embed,
                 attachments=[output_file],
             )
