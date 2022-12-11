@@ -240,7 +240,7 @@ def image_info(ctx: BombContext, source: BytesIO) -> tuple[discord.Embed, discor
         embed = discord.Embed(
             color=ctx.bot.EMBED_COLOR,
             description=(
-                f'```yml\nis-animated: {("no", "yes")[getattr(img, "is_animated", False)]}\n'
+                f'```yml\nIs-animated: {("no", "yes")[getattr(img, "is_animated", False)]}\n'
                 f'Size: {img.width}x{img.height}\n'
                 f'Mode: {img.mode or "N/A"}\n'
                 f'Format: {img.format or "N/A"}\n'
