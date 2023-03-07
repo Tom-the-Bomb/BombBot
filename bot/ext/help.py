@@ -125,6 +125,7 @@ class BombHelp(commands.HelpCommand):
             'A valid `image` source, optional\n(by default the author\'s avatar)' if param.converter in (Optional[ImageConverter], ImageConverter)
             else 'see "Flags" below' if name == 'options'
             else self._format_literal_option(param.converter) if isinstance(param.converter, _GenericAlias)
+            else f'Range[{param.converter.min}, {param.converter.max}]' if isinstance(param.converter, commands.Range)
             else getattr(param.converter, '__name__', param.converter)
         )
 

@@ -233,5 +233,29 @@ class Games(commands.Cog):
         game = button_games.Boggle()
         await game.start(ctx, timeout=600)
 
+    @commands.command(name='verbalmem', aliases=('verbalmemory',))
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.cooldown(1, 20, commands.BucketType.user)
+    async def verbalmem(self, ctx: BombContext, lives: int = 3) -> None:
+        """Starts a verbal memory game (singleplayer)"""
+        game = button_games.VerbalMemory()
+        await game.start(ctx, lives=lives, timeout=600)
+
+    @commands.command(name='chimptest', aliases=('chimp',))
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.cooldown(1, 20, commands.BucketType.user)
+    async def chimptest(self, ctx: BombContext, *, count: commands.Range[int, 1, 25] = 9) -> None:
+        """Starts a chimp test game (singleplayer)"""
+        game = button_games.ChimpTest(count)
+        await game.start(ctx, timeout=600)
+
+    @commands.command(name='numbermem', aliases=('nummem',))
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.cooldown(1, 20, commands.BucketType.user)
+    async def numbermem(self, ctx: BombContext) -> None:
+        """Starts a number memory game (singleplayer)"""
+        game = button_games.NumberMemory()
+        await game.start(ctx, timeout=600)
+
 async def setup(bot: BombBot) -> None:
     await bot.add_cog(Games(bot))
