@@ -121,9 +121,16 @@ class Games(commands.Cog):
     @commands.command(name='battleship', aliases=('bs',))
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 60, commands.BucketType.user)
-    async def battleship(self, ctx: BombContext, opponent: discord.Member) -> None:
+    async def battleship(
+        self,
+        ctx: BombContext,
+        opponent: discord.Member,
+        choose_pos: Optional[Literal['-c']],
+    ) -> None:
         """Starts a battleship game with the provided `opponent`
         occurs in respective DMs
+
+        - Specify the optional `-c` option to allow the *users* to (custom) choose their ship placements
         """
         no_mentions = discord.AllowedMentions.none()
         if ctx.author in self.is_in_battleship:
@@ -136,7 +143,7 @@ class Games(commands.Cog):
             self.is_in_battleship.add(ctx.author)
             self.is_in_battleship.add(opponent)
 
-            game = button_games.BetaBattleShip(ctx.author, opponent)
+            game = button_games.BetaBattleShip(ctx.author, opponent, random=not bool(choose_pos))
             await game.start(ctx, timeout=1800)
 
             self.is_in_battleship.remove(ctx.author)
