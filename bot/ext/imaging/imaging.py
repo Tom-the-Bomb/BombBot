@@ -197,6 +197,11 @@ class Imaging(commands.Cog):
         """Wraps the provided image on a cube"""
         return await do_command(ctx, image, func=cube)
 
+    @commands.command(name='slides')
+    async def _slides(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+        """Makes a conveyor belt style slideshow with the provided image"""
+        return await do_command(ctx, image, func=slides)
+
     @commands.command(name='spreadout', aliases=('spread',))
     async def _spreadout(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
         """Wraps the provided image on a cube"""

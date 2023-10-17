@@ -39,6 +39,7 @@ __all__: tuple[str, ...] = (
     'slide',
     'bulge',
     'swirl',
+    'slides',
     'turn',
     'fisheye',
     'bomb',
@@ -348,6 +349,22 @@ def cube(_, img: Image) -> Image:
         base.composite(left, base.width - left.width, 145)
 
     base.format = 'png'
+    return base
+
+@wand_image(width=281, process_all_frames=False)
+def slides(_, img: Image) -> Image:
+    for i in range(2, 260, 20):
+        clone = img.clone()
+        clone.virtual_pixel = 'horizontal_tile'
+        clone.distort('scale_rotate_translate', (i, 0, 1, 0, 0, 0))
+        clone.distort('plane_2_cylinder', (110,))
+        clone.dispose = 'background'
+        if i == 2:
+            clone.background_color = 'none'
+            base = clone
+        else:
+            clone.background_color = 'white'
+            base.sequence.append(clone)
     return base
 
 @wand_image(width=400)
