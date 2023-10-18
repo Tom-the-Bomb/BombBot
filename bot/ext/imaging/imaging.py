@@ -307,6 +307,11 @@ class Imaging(commands.Cog):
         """Bounces an image... up.. and down.."""
         return await do_command(ctx, image, func=bounce)
 
+    @commands.command(name='braille')
+    async def _braille(self, ctx: BombContext, image: Optional[ImageConverter], options: BrailleFlags) -> None:
+        """Turns the image into braille characters"""
+        return await do_command(ctx, image, func=braille, size=options.size, threshold=options.threshold)
+
     # opencv-python functions
 
     @commands.command(name='filter', aliases=('colormap', 'applycolormap'))

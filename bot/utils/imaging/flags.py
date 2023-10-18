@@ -17,6 +17,7 @@ __all__: tuple[str, ...] = (
     'BlockSize',
     'ColorFlag',
     'ReplaceColors',
+    'BrailleOptions',
 )
 
 
@@ -66,6 +67,16 @@ class BlockSize(PosixFlagConverter):
     Specifies the number of blocks to use for the generated image
     """
     size: Range[int, 1, 110] = 70
+
+class BrailleOptions(PosixFlagConverter):
+    """• `--size` an {integer} between `1` and `300` (by default `160`)
+    Specifies the number of characters to use for the generated image
+    • `--threshold` an {integer} between `1` and `255` (by default `128`)
+    Specifies the threshold at which a pixel value is considered **white** or **black**
+    use (tuning) for generating better results with different images
+    """
+    size: Range[int, 1, 300] = 160
+    threshold: Range[int, 0, 256] = 128
 
 class ColorFlag(PosixFlagConverter):
     """• `--color` any valid color in {css}

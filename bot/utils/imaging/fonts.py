@@ -10,6 +10,7 @@ __all__: tuple[str, ...] = (
     'UNICODE_FONT',
     'CODE_FONT',
     'CAPTION_FONT',
+    'BRAILLE_FONT',
 )
 
 
@@ -53,3 +54,9 @@ CAPTION_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(
     size=30,
 )
 CAPTION_FONT.glyphs = _get_font_glyphs(CAPTION_FONT.path)
+
+BRAILLE_FONT: ImageFont.FreeTypeFont = ImageFont.truetype(
+    font=get_asset('braille.ttf'),
+    size=30,
+)
+BRAILLE_FONT.glyphs = _get_font_glyphs(BRAILLE_FONT.path)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 from io import BytesIO
+from math import ceil
 
 from typing import TYPE_CHECKING, Final, Any
 import textwrap
@@ -24,6 +25,7 @@ from ..helpers import (
     get_asset,
     truncate,
 )
+from .braille_data import BRAILLE_DATA
 from .fonts import *
 from .image import (
     resize_pil_prop,
@@ -52,6 +54,7 @@ __all__: tuple[str, ...] = (
     'image_info',
     'caption',
     'bounce',
+    'braille',
 )
 
 MCSIZE: Final[int] = 16
@@ -231,6 +234,72 @@ def letters(_, img: Image.Image) -> list[Image.Image]:
             anchor='mm',
         ) for _ in range(3)
     ]
+
+def _get_braille_from_px(
+    x: int, y: int,
+    image: Image.Image,
+    *,
+    invert: bool = False,
+    threshold: int
+) -> str:
+    region = [['0', '0']] * 4
+    w, h = image.size
+
+    for i in range(x, x + 2):
+        for j in range(y, y + 2):
+            gray = 0 if i >= w or j >= h else (
+                sum(px := image.getpixel((i, j))) / len(px)
+            )
+            region[j - y][i - x] = ('1', '0')[invert] if gray < threshold else ('0', '1')[invert]
+    return BRAILLE_DATA.get(
+        ' '.join(''.join(r) for r in region), '.'
+    )
+
+def _fix_braille_spaces(
+    arr: list[list[str]], width: int, height: int
+) -> list[list[str]]:
+    for (y, row) in enumerate(arr[:height]):
+        last = width - 1
+        for x in reversed(range(width)):
+            if row[x] != '.':
+                break
+            last = x
+        arr[y] = row[:last]
+    for row in arr[:height]:
+        for (x, item) in enumerate(row):
+            if item == '.':
+                row[x] = '⢀'
+    return arr
+
+@pil_image()
+def braille(_,
+    img: Image.Image,
+    *,
+    size: int = 160,
+    threshold: int = 128,
+    invert: bool = False
+) -> Image.Image:
+    img = resize_pil_prop(img, width=size)
+    img = img.convert('RGBA')
+
+    width = ceil(img.width / 2)
+    height = ceil(img.height / 4)
+    arr = [[' '] * width for _ in range(height)]
+
+    for x in range(width):
+        for (y, _) in enumerate(arr[:height]):
+            arr[y][x] = _get_braille_from_px(
+                x * 2, y * 4, img,
+                invert=invert, threshold=threshold,
+            )
+    arr = _fix_braille_spaces(arr, width, height)
+    text = '\n'.join(''.join(row) for row in arr)
+
+    canvas = Image.new('RGB', BRAILLE_FONT.getsize_multiline(text), (255, 255, 255))
+    draw = ImageDraw.Draw(canvas)
+
+    draw.text((0, 0), text, fill=0, font=BRAILLE_FONT)
+    return canvas
 
 @pil_image(process_all_frames=False, auto_save=False, pass_buf=True)
 def image_info(ctx: BombContext, source: BytesIO) -> tuple[discord.Embed, discord.File, discord.File] | tuple[discord.Embed, discord.File]:
