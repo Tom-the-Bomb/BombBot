@@ -18,6 +18,7 @@ __all__: tuple[str, ...] = (
     'ColorFlag',
     'ReplaceColors',
     'BrailleFlags',
+    'GlitchFlags',
 )
 
 
@@ -76,7 +77,13 @@ class BrailleFlags(PosixFlagConverter):
     use (tuning) for generating better results with different images
     """
     size: Range[int, 1, 300] = 160
-    threshold: Range[int, 0, 256] = 128
+    threshold: Range[int, 0, 255] = 128
+
+class GlitchFlags(PosixFlagConverter):
+    """• `--intensity` an {integer} between `0` and `10` (by default `3`)
+    Specifies the intensity of the glitching
+    """
+    intensity: Range[float, 0, 10] = 3
 
 class ColorFlag(PosixFlagConverter):
     """• `--color` any valid color in {css}

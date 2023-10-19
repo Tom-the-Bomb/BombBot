@@ -312,6 +312,17 @@ class Imaging(commands.Cog):
         """Turns the image into braille characters"""
         return await do_command(ctx, image, func=braille, size=options.size, threshold=options.threshold)
 
+    @commands.command(name='glitch')
+    async def _glitch(
+        self, ctx: BombContext,
+        image: Optional[ImageConverter],
+        scanlines: Optional[Literal['-s']],
+        *,
+        options: GlitchFlags,
+    ) -> None:
+        """Turns the image into braille characters"""
+        return await do_command(ctx, image, func=glitch, scanlines=bool(scanlines), factor=options.intensity)
+
     # opencv-python functions
 
     @commands.command(name='filter', aliases=('colormap', 'applycolormap'))

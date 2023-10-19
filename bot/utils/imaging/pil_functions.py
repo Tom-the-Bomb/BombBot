@@ -12,6 +12,7 @@ import humanize
 import discord
 import numpy as np
 import pilmoji
+from glitch_this import ImageGlitcher
 from PIL import (
     Image,
     ImageOps,
@@ -55,6 +56,7 @@ __all__: tuple[str, ...] = (
     'caption',
     'bounce',
     'braille',
+    'glitch',
 )
 
 MCSIZE: Final[int] = 16
@@ -300,6 +302,15 @@ def braille(_,
 
     draw.text((0, 0), text, fill=0, font=BRAILLE_FONT)
     return canvas
+
+@pil_image(process_all_frames=False)
+def glitch(_, img: Image.Image, *, scanlines: bool = False, factor: int = 3) -> Image.Image:
+    glitcher = ImageGlitcher()
+    glitch_img = glitcher.glitch_image(
+        img, factor, scan_lines=scanlines,
+        gif=True, color_offset=True,
+    )
+    return glitch_img
 
 @pil_image(process_all_frames=False, auto_save=False, pass_buf=True)
 def image_info(ctx: BombContext, source: BytesIO) -> tuple[discord.Embed, discord.File, discord.File] | tuple[discord.Embed, discord.File]:
