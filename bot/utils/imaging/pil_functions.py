@@ -57,6 +57,7 @@ __all__: tuple[str, ...] = (
     'bounce',
     'braille',
     'glitch',
+    'pixel',
 )
 
 MCSIZE: Final[int] = 16
@@ -311,6 +312,18 @@ def glitch(_, img: Image.Image, *, scanlines: bool = False, factor: int = 3) -> 
         gif=True, color_offset=True,
     )
     return glitch_img
+
+@pil_image(process_all_frames=False)
+def pixel(_, img: Image.Image) -> list[Image.Image]:
+    frames = [
+        resize_pil_prop(
+            resize_pil_prop(img, width=size),
+            width=512,
+            resampling=Image.NEAREST
+        ) for size in range(50, 5, -3)
+    ]
+    frames += reversed(frames)
+    return frames
 
 @pil_image(process_all_frames=False, auto_save=False, pass_buf=True)
 def image_info(ctx: BombContext, source: BytesIO) -> tuple[discord.Embed, discord.File, discord.File] | tuple[discord.Embed, discord.File]:

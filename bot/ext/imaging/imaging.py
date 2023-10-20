@@ -320,8 +320,16 @@ class Imaging(commands.Cog):
         *,
         options: GlitchFlags,
     ) -> None:
-        """Turns the image into braille characters"""
+        """Glitches an image out
+
+        - Specify the optional `-s` option to add old TV scan lines...
+        """
         return await do_command(ctx, image, func=glitch, scanlines=bool(scanlines), factor=options.intensity)
+
+    @commands.command(name='pixel', aliases=('pixelgif',))
+    async def _pixel(self, ctx: BombContext, *, image: Optional[ImageConverter]) -> None:
+        """Gradually pixelates an image more and more"""
+        return await do_command(ctx, image, func=pixel)
 
     # opencv-python functions
 
