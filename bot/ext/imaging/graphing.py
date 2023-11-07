@@ -41,8 +41,21 @@ class Graphing(commands.Cog):
         """
         try:
             return await do_command(ctx, equation, func=plotfn)
-        except TypeError:
-            await ctx.send(f'Provided equation was invalid; the only variable present must be `x`.')
+        except SyntaxError:
+            await ctx.send(f'Provided equation has invalid syntax; only single variable functions are allowed')
+
+    @commands.command(name='polar', aliases=('polar-plot',))
+    async def _polar(self, ctx: BombContext, *, equation: str) -> None:
+        """Plots the provided equation out on the **polar coordinate system**
+
+        - `(r, t)` instead of `(x, y)`
+
+        Ex: `{prefix}plot 4sin(2t)`
+        """
+        try:
+            return await do_command(ctx, equation, func=plotfn, polar=True)
+        except SyntaxError:
+            await ctx.send(f'Provided equation has invalid syntax; only single variable functions are allowed')
 
 async def setup(bot: BombBot) -> None:
     await bot.add_cog(Graphing(bot))

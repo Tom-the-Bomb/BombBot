@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING
 from io import BytesIO
 from statistics import (
@@ -19,7 +18,13 @@ from matplotlib.font_manager import FontProperties
 plt.style.use(('bmh', 'ggplot'))
 
 import discord
-from Equation import Expression
+from sympy import Symbol, Basic
+from sympy.parsing.sympy_parser import (
+    parse_expr,
+    convert_xor,
+    standard_transformations,
+    implicit_multiplication_application
+)
 
 from ..helpers import to_thread, get_asset
 
@@ -106,39 +111,54 @@ def boxplot(_, data: list[float], *, fill_boxes: bool = True) -> discord.File:
     buffer.seek(0)
     return discord.File(buffer, 'graph.png')
 
-def _clean_implicit_mul(equation: str) -> str:
-    def _sub_mul(val: re.Match) -> str:
-        parts = list(val.group())
-        parts.insert(-1, '*')
-        return ''.join(parts)
-
-    equation = re.sub(r'\s+', '', equation)
-    equation = re.sub(r'(?<=[0-9x)])x', _sub_mul, equation)
-    equation = equation.replace(')(', ')*(')
-    return equation
-
 @to_thread
-def plotfn(_, equation: str, *, xrange: tuple[int, int] = (-20, 20)) -> discord.File:
+def plotfn(_,
+    equation: str,
+    *,
+    xrange: tuple[int, int] = None,
+    polar: bool = False
+) -> discord.File:
+    def f(x):
+        expr: Basic = parse_expr(
+            equation,
+            transformations=(
+                standard_transformations +
+                (convert_xor,) +
+                (implicit_multiplication_application,)
+            )
+        )
+        _vars = list(expr.atoms(Symbol))
+        if _vars:
+            expr = expr.subs(_vars[0], x)
+        try:
+            float(expr)
+            return expr
+        except TypeError:
+            return
 
-    fig: Figure = plt.figure()
-    ax: Axes = fig.add_subplot(1, 1, 1)
-    ax.set_title(f'y = {equation}', pad=15)
-    equation = _clean_implicit_mul(equation)
+    if polar:
+        theta = np.linspace(*(xrange or (0, 38)), 1000) # [0, ~12pi]
 
-    fx = np.vectorize(Expression(equation, ['x']))
-    x = np.linspace(*xrange, 1000)
+        fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+        ax.set_title(f'r = {equation}', va='bottom')
+        ax.plot(theta, np.vectorize(f)(theta))
+    else:
+        fig: Figure = plt.figure()
+        ax: Axes = fig.add_subplot(1, 1, 1)
+        ax.set_title(f'y = {equation}', pad=15)
+        x = np.linspace(*(xrange or (-20, 20)), 1000)
 
-    ax.set_aspect('equal', adjustable='box')
-    ax.spines['left'].set_position('center')
-    ax.spines['bottom'].set_position('zero')
-    ax.spines['right'].set_color('none')
-    ax.spines['top'].set_color('none')
-    ax.xaxis.set_ticks_position('bottom')
-    ax.yaxis.set_ticks_position('left')
-    ax.set_ylim(*ax.get_xlim())
+        ax.set_aspect('equal', adjustable='box')
+        ax.spines['left'].set_position('center')
+        ax.spines['bottom'].set_position('zero')
+        ax.spines['right'].set_color('none')
+        ax.spines['top'].set_color('none')
+        ax.xaxis.set_ticks_position('bottom')
+        ax.yaxis.set_ticks_position('left')
+        ax.set_ylim(*ax.get_xlim())
 
-    ax.plot(x, fx(x))
-    plt.axis('equal')
+        ax.plot(x, np.vectorize(f)(x))
+        plt.axis('equal')
 
     buffer = BytesIO()
     plt.savefig(buffer)

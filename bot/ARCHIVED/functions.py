@@ -1,4 +1,6 @@
 
+import re
+
 import numpy as np
 from PIL import Image
 
@@ -72,3 +74,15 @@ def lego(_, img: Image.Image, size: int = 40) -> Image.Image:
             x = 0
             y += LEGO.height
         return bg
+
+# for old graphing equation parsing
+def _clean_implicit_mul(equation: str) -> str:
+    def _sub_mul(val: re.Match) -> str:
+        parts = list(val.group())
+        parts.insert(-1, '*')
+        return ''.join(parts)
+
+    equation = re.sub(r'\s+', '', equation)
+    equation = re.sub(r'(?<=[0-9x)])x', _sub_mul, equation)
+    equation = equation.replace(')(', ')*(')
+    return equation
