@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Literal
+from typing import TYPE_CHECKING, Optional, Literal, ClassVar
+import unicodedata
 
 import discord
 from discord.ext import commands
@@ -14,6 +15,7 @@ if TYPE_CHECKING:
 
 class Utility(commands.Cog):
     """Contains various useful utility commands"""
+    CHARINFO_URL: ClassVar[str] = 'https://www.fileformat.info/info/unicode'
 
     def __init__(self, bot: BombBot) -> None:
         self.bot = bot
@@ -42,6 +44,39 @@ class Utility(commands.Cog):
         embed = discord.Embed(color=ctx.bot.EMBED_COLOR)
         embed.set_image(url=f'attachment://{file.filename}')
         await ctx.send(file=file, embed=embed)
+
+    @commands.command(name='charinfo', aliases=('char', 'chr'))
+    async def charinfo(self, ctx: BombContext, *, chars: str) -> None:
+        """Provides information on each **character** from the given argument and the raw unicode of the characters"""
+
+        embed = discord.Embed(
+            title='Unicode Character Info',
+            color=ctx.bot.EMBED_COLOR,
+            description='',
+            url=self.CHARINFO_URL,
+        )
+        raw_text = ''
+        for char in chars:
+            digit = format(ord(char), 'x')
+            raw_text += (
+                u_code := f'\\u{digit:>04}' if len(digit) <= 4 else f'\\U{digit:>08}'
+            )
+            url = f'{self.CHARINFO_URL}/char/{digit:>04}/index.htm'
+            name = f'**[{unicodedata.name(char, "")}]({url})**'
+
+            embed.description += (
+                f'`{u_code.ljust(10).replace(" ", "")}`'
+                f' | {name}\t•\t**{discord.utils.escape_markdown(char)}**\n'
+            )
+        embed.description += '\n\u200b'
+        embed.add_field(
+            name='Full Raw Text',
+            value=f'`{raw_text}`',
+        )
+        try:
+            await ctx.send(embed=embed)
+        except discord.HTTPException:
+            await ctx.send('The character string is too long!')
 
 async def setup(bot: BombBot) -> None:
     await bot.add_cog(Utility(bot))
