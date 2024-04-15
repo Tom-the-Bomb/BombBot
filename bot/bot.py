@@ -230,7 +230,7 @@ class BombBot(commands.Bot):
             else:
                 folder = ('72x72', 'svg')[svg]
                 ext = ('png', 'svg')[svg]
-                url = f'https://twemoji.maxcdn.com/v/latest/{folder}/{ord(emoji):x}.{ext}'
+                url = f'https://raw.githubusercontent.com/twitter/twemoji/master/assets/{folder}/{ord(emoji):x}.{ext}'
 
             async with self.session.get(url) as r:
                 if r.ok:
