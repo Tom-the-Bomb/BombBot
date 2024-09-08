@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from typing import (
+    get_args,
+    get_origin,
     TYPE_CHECKING,
     Awaitable,
     Optional,
@@ -9,11 +11,10 @@ from typing import (
     ParamSpec,
     TypeAlias,
     ClassVar,
-    get_args,
-    get_origin,
     Union,
     Any,
 )
+
 from types import NoneType
 import functools
 import asyncio
@@ -77,7 +78,6 @@ class Regexes:
     CUSTOM_EMOJI_REGEX: ClassVar[re.Pattern] = re.compile(r'<(a)?:([a-zA-Z0-9_]{2,32}):([0-9]{18,22})>')
 
 class AuthorOnlyView(discord.ui.View):
-
     def __init__(self, author: discord.User, *, timeout: Optional[float] = None):
         super().__init__(timeout=timeout)
 
@@ -102,7 +102,6 @@ class AuthorOnlyView(discord.ui.View):
             return True
 
 class ConfirmView(AuthorOnlyView):
-
     def __init__(self, user: discord.Member, *, timeout: Optional[float] = None) -> None:
         super().__init__(user, timeout=timeout)
 
@@ -132,7 +131,6 @@ class ConfirmView(AuthorOnlyView):
 
 
 class ConfirmDeletionView(AuthorOnlyView):
-
     @discord.ui.button(label='yes', style=discord.ButtonStyle.green)
     async def yes_button(self, interaction: discord.Interaction, _) -> None:
         self.disable_all()
@@ -150,7 +148,6 @@ class ConfirmDeletionView(AuthorOnlyView):
         await interaction.response.edit_message(content='Ok, aborting', view=self)
 
 class DeleteView(AuthorOnlyView):
-
     @discord.ui.button(emoji='🗑️', style=discord.ButtonStyle.red)
     async def delete_button(self, interaction: discord.Interaction, _) -> None:
         view = ConfirmDeletionView(self.author)

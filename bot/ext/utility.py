@@ -9,6 +9,8 @@ from jishaku.codeblocks import codeblock_converter
 
 from async_tio import Tio
 
+from ..utils.calculator import CalculatorView
+
 if TYPE_CHECKING:
     from ..bot import BombBot
     from ..utils.context import BombContext
@@ -20,6 +22,12 @@ class Utility(commands.Cog):
     def __init__(self, bot: BombBot) -> None:
         self.bot = bot
         self.tio = Tio(session=bot.session)
+
+    async def cog_unload(self) -> None:
+        from importlib import reload
+        from ..utils import calculator
+
+        reload(calculator)
 
     @commands.command(name='execute', aliases=('eval', 'run'))
     async def execute(self, ctx: BombContext, language: str, *, code: codeblock_converter) -> None:
@@ -77,6 +85,17 @@ class Utility(commands.Cog):
             await ctx.send(embed=embed)
         except discord.HTTPException:
             await ctx.send('The character string is too long!')
+
+    @commands.command(name='calculator', aliases=('calc',))
+    async def calculator(self, ctx: BombContext) -> None:
+        """A generic arithmetic calculator with a matrix of buttons"""
+        await ctx.send(
+            embed=discord.Embed(
+                description=f'```py\n\u200b{" " * 40}\u200b\n```',
+                color=ctx.bot.EMBED_COLOR,
+            ),
+            view=CalculatorView(ctx, timeout=900),
+        )
 
 async def setup(bot: BombBot) -> None:
     await bot.add_cog(Utility(bot))
