@@ -13,3 +13,4 @@ opencv-python
 async_tio
 pilmoji
 glitch-this
+doc_search

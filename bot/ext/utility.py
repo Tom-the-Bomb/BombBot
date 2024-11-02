@@ -8,6 +8,7 @@ from discord.ext import commands
 from jishaku.codeblocks import codeblock_converter
 
 from async_tio import Tio
+from doc_search import AsyncScraper
 
 from ..utils.calculator import CalculatorView
 
@@ -22,6 +23,7 @@ class Utility(commands.Cog):
     def __init__(self, bot: BombBot) -> None:
         self.bot = bot
         self.tio = Tio(session=bot.session)
+        self.scraper = AsyncScraper(loop=bot.loop, session=bot.session)
 
     async def cog_unload(self) -> None:
         from importlib import reload
@@ -95,6 +97,47 @@ class Utility(commands.Cog):
                 color=ctx.bot.EMBED_COLOR,
             ),
             view=CalculatorView(ctx, timeout=900),
+        )
+
+    @commands.group(name='docs', aliases=('doc',), invoke_without_command=True)
+    async def docs(self, ctx: BombContext, *, query: str) -> None:
+        """Searches the official **python** documentation"""
+        results = await self.scraper.search(query, page='https://docs.python.org/3/')
+        await ctx.send(
+            embed=discord.Embed(
+                title="Python 3 docs",
+                description='\n'.join(f'[**`{name}`**]({url})' for name, url in results[:10]),
+                color=ctx.bot.EMBED_COLOR,
+            )
+        )
+
+    @docs.command(name='py', aliases=('python',))
+    async def py(self, ctx: BombContext, *, query: str) -> None:
+        """An alias for `{prefix}docs` to search the official **python** documentation"""
+        await self.docs(ctx, query=query)
+
+    @docs.command(name='c')
+    async def c(self, ctx: BombContext, *, query: str) -> None:
+        """Searches the official **C-lang** documentation"""
+        results = await self.scraper.search_c(query)
+        await ctx.send(
+            embed=discord.Embed(
+                title="C docs",
+                description='\n'.join(f'[**`{name}`**]({url})' for name, url in results[:10]),
+                color=ctx.bot.EMBED_COLOR,
+            )
+        )
+
+    @docs.command(name='cpp', aliases=('c++',))
+    async def cpp(self, ctx: BombContext, *, query: str) -> None:
+        """Searches the official **C++** documentation"""
+        results = await self.scraper.search_cpp(query)
+        await ctx.send(
+            embed=discord.Embed(
+                title="C++ docs",
+                description='\n'.join(f'[**`{name}`**]({url})' for name, url in results[:10]),
+                color=ctx.bot.EMBED_COLOR,
+            )
         )
 
 async def setup(bot: BombBot) -> None:
