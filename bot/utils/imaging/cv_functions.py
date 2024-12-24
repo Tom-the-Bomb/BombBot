@@ -202,7 +202,7 @@ def ascii(_, img: np.ndarray, *, size: int = 10, invert: bool = True) -> str:
     w, h, _ = img.shape
 
     rows = int(h / w * (size / 2))
-    img = cv2.resize(img, (size, rows), cv2.INTER_CUBIC)
+    img = cv2.resize(img, (size, rows), interpolation=cv2.INTER_CUBIC)
 
     if invert:
         img = ~img

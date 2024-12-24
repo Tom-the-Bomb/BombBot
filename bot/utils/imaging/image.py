@@ -44,24 +44,19 @@ if TYPE_CHECKING:
     IT = TypeVar('IT')
 
     P = ParamSpec('P')
-    C = TypeVar('C', BombContext)
-    I = TypeVar('I', Image.Image)
     R = TypeVar('R', Image.Image, list[Image.Image], BytesIO)
 
-    I_ = TypeVar('I_', WandImage)
     R_ = TypeVar('R_', WandImage, list[WandImage], BytesIO)
 
     CMD = TypeVar('CMD', bound=commands.Command)
 
-    PillowParams: TypeAlias = Concatenate[C, I, P]
-    PillowFunction: TypeAlias = Callable[PillowParams, R]
-    PillowThreaded: TypeAlias = Callable[PillowParams, Awaitable[R]]
+    PillowFunction: TypeAlias = Callable[Concatenate[BombContext, Image.Image, P], R]
+    PillowThreaded: TypeAlias = Callable[Concatenate[BombContext, Image.Image, P], Awaitable[R]]
 
-    WandParams: TypeAlias = Concatenate[C, I_, P]
-    WandFunction: TypeAlias = Callable[WandParams, R_]
-    WandThreaded: TypeAlias = Callable[WandParams, Awaitable[R_]]
+    WandFunction: TypeAlias = Callable[Concatenate[BombContext, WandImage, P], R_]
+    WandThreaded: TypeAlias = Callable[Concatenate[BombContext, WandImage, P], Awaitable[R_]]
 
-    GraphFn: TypeAlias = Callable[Concatenate[C, P], Awaitable[discord.File]]
+    GraphFn: TypeAlias = Callable[Concatenate[BombContext, P], Awaitable[discord.File]]
 
     Duration: TypeAlias = list[int] | int | None
 
@@ -105,7 +100,7 @@ def svg_to_png(
         height=height,
         background='none',
     ) as asset:
-        return asset.make_blob('png')
+        return asset.make_blob('png') # type: ignore
 
 async def run_threaded(
     func: Callable[[BytesIO], R | R_],
@@ -179,7 +174,7 @@ def pil_circle_mask(width: int, height: int) -> Image.Image:
     draw.ellipse((0, 0, width, height), fill='white')
     return mask
 
-def wand_circular(img: I_, *, mask: Optional[WandImage] = None) -> I_:
+def wand_circular(img: WandImage, *, mask: Optional[WandImage] = None) -> WandImage:
 
     if not mask:
         mask = wand_circle_mask(img.width, img.height)
@@ -225,13 +220,13 @@ def _get_prop_size(
 
 
 def process_wand_gif(
-    image: I_,
+    image: WandImage,
     func: WandFunction,
     ctx: BombContext,
-    *args: P.args,
+    *args: Any,
     max_frames: int = MAX_FRAMES,
-    **kwargs: P.kwargs,
-) -> I_:
+    **kwargs: Any,
+) -> WandImage:
 
     check_frame_amount(image, max_frames)
 
@@ -397,7 +392,7 @@ def pil_image(
 ) -> Callable[[PillowFunction], PillowThreaded]:
     def decorator(func: PillowFunction) -> PillowThreaded:
 
-        async def wrapper(ctx: C, img: I, *args: P.args, **kwargs: P.kwargs) -> R:
+        async def wrapper(ctx: BombContext, img: Image.Image, *args: P.args, **kwargs: P.kwargs) -> R:
             img = await ImageConverter().get_image(ctx, img)
 
             def inner(image: BytesIO) -> R:
@@ -441,7 +436,7 @@ def wand_image(
 ) -> Callable[[WandFunction], WandThreaded]:
     def decorator(func: WandFunction) -> WandThreaded:
 
-        async def wrapper(ctx: C, img: I, *args: P.args, **kwargs: P.kwargs) -> R_:
+        async def wrapper(ctx: BombContext, img: Image.Image, *args: P.args, **kwargs: P.kwargs) -> R_:
             img = await ImageConverter().get_image(ctx, img)
 
             def inner(image: BytesIO) -> R_:
@@ -508,7 +503,7 @@ def _convert_from_arr(
 def to_array(img_mode: str = 'RGB', arr_mode: int = cv2.COLOR_RGB2BGR) -> Callable[[WandFunction | PillowFunction], WandFunction | PillowFunction]:
 
     def decorator(func: WandFunction | PillowFunction) -> WandFunction | PillowFunction:
-        def inner(ctx: C, image: I | I_ | list[I | I_], *args: P.args, **kwargs: P.kwargs) -> R | R_:
+        def inner(ctx: BombContext, image: Image.Image | WandImage | list[Image.Image | WandImage], *args: P.args, **kwargs: P.kwargs) -> R | R_:
 
             if isinstance(image, list):
                 arr = [_convert_to_arr(frame, img_mode, arr_mode) for frame in image]
