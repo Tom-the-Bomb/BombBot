@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional, Literal
+from io import StringIO
 import textwrap
 
+from discord import File
 from discord.ext import commands
 
 from bot.utils.imaging import do_command, ImageConverter
@@ -214,7 +216,7 @@ class Imaging(commands.Cog):
 
     # pil functions
 
-    @commands.command(name='matrix', aliases=('code', 'ascii'))
+    @commands.command(name='matrix', aliases=('code',))
     async def _matrix(self, ctx: BombContext, image: Optional[ImageConverter], *, options: BlockSize) -> None:
         """Generates a matrix gif with the provided image"""
         return await do_command(ctx, image, func=matrix, size=options.size)
@@ -308,7 +310,7 @@ class Imaging(commands.Cog):
         return await do_command(ctx, image, func=bounce)
 
     @commands.command(name='braille')
-    async def _braille(self, ctx: BombContext, image: Optional[ImageConverter], options: BrailleFlags) -> None:
+    async def _braille(self, ctx: BombContext, image: Optional[ImageConverter], *, options: BrailleFlags) -> None:
         """Turns the image into braille characters"""
         return await do_command(ctx, image, func=braille, size=options.size, threshold=options.threshold)
 
@@ -375,6 +377,16 @@ class Imaging(commands.Cog):
         """Cartoonifies an image"""
         return await do_command(ctx, image, func=cartoon)
 
+    @commands.command(name='ascii')
+    async def _ascii(self, ctx: BombContext, image: Optional[ImageConverter], *, options: AsciiFlag) -> None:
+        """ASCII-ifies an image"""
+        async with ctx.typing():
+            await ctx.send(
+                file=File(
+                    StringIO(await ascii(ctx, image, size=options.size, invert=options.invert)),
+                    'ascii.txt'
+                )
+            )
 
 async def setup(bot: BombBot) -> None:
     await bot.add_cog(Imaging(bot))

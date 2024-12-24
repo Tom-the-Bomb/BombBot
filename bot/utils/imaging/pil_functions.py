@@ -278,7 +278,7 @@ def _fix_braille_spaces(
 def braille(_,
     img: Image.Image,
     *,
-    size: int = 160,
+    size: int = 250,
     threshold: int = 128,
     invert: bool = False
 ) -> Image.Image:

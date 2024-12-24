@@ -19,6 +19,7 @@ __all__: tuple[str, ...] = (
     'ReplaceColors',
     'BrailleFlags',
     'GlitchFlags',
+    'AsciiFlag',
 )
 
 
@@ -70,13 +71,13 @@ class BlockSize(PosixFlagConverter):
     size: Range[int, 1, 110] = 70
 
 class BrailleFlags(PosixFlagConverter):
-    """• `--size` an {integer} between `1` and `300` (by default `160`)
+    """• `--size` an {integer} between `1` and `400` (by default `250`)
     Specifies the number of characters to use for the generated image
     • `--threshold` an {integer} between `1` and `255` (by default `128`)
     Specifies the threshold at which a pixel value is considered **white** or **black**
     use (tuning) for generating better results with different images
     """
-    size: Range[int, 1, 300] = 160
+    size: Range[int, 1, 400] = 250
     threshold: Range[int, 0, 255] = 128
 
 class GlitchFlags(PosixFlagConverter):
@@ -99,3 +100,11 @@ class ReplaceColors(PosixFlagConverter):
     """
     target: ColorConverter
     to: ColorConverter
+
+class AsciiFlag(PosixFlagConverter):
+    """• `--size` an {integer} between `1` and `200` (by default `130`)
+    Specifies the number of columns to use for the generated image
+    • `--invert` a {boolean}, whether or not to invert the image prior to processing
+    """
+    size: Range[int, 1, 200] = 130
+    invert: bool = True

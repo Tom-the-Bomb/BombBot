@@ -20,7 +20,7 @@ from urllib.parse import quote
 import jishaku
 import discord
 from discord.ext import commands
-from aiohttp import MultipartWriter, ClientSession
+from aiohttp import ClientSession
 
 from .utils.context import BombContext
 from .utils.imaging import BaseImageException, svg_to_png
@@ -195,31 +195,27 @@ class BombBot(commands.Bot):
             await session.close()
         return await super().close()
 
-    async def get_context(self, message: discord.Message, *, cls: type[commands.Context] = BombContext) -> commands.Context | BombContext:
+    async def get_context(self, message: discord.Message | discord.Interaction, *, cls: type[commands.Context] = BombContext) -> commands.Context | BombContext:
         return await super().get_context(message, cls=cls)
 
-    async def post_mystbin(self, code: str, *, language: Optional[str] = None) -> Optional[str]:
-        MYSTBIN_URL = 'https://mystb.in/api/pastes'
+    async def post_mystbin(self, code: str, *, language: str = 'txt') -> Optional[str]:
+        MYSTBIN_URL = 'https://mystb.in/api/paste'
 
-        payload = MultipartWriter()
-        content = payload.append(code)
-        content.set_content_disposition('form-data', name='data')
+        data = {
+            'expires': None,
+            'files': [
+                {
+                    'content': code,
+                    'filename': f'thing.{language}'
+                },
+            ],
+            'password': None,
+        }
 
-        meta = {'index': 0}
-
-        if language:
-            meta['syntax'] = language
-
-        content = payload.append_json(
-            {'meta': [meta]}
-        )
-
-        content.set_content_disposition('form-data', name='meta')
-
-        async with self.session.post(MYSTBIN_URL, data=payload) as r:
+        async with self.session.post(MYSTBIN_URL, json=data) as r:
             if r.ok:
                 data = await r.json()
-                paste = 'https://mystb.in/' + data['pastes'][0]['id']
+                paste = 'https://mystb.in/' + data['id']
                 return paste
 
     async def get_default_emoji(self, emoji: str, *, svg: bool = True) -> Optional[bytes]:

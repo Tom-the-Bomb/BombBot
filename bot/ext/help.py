@@ -68,6 +68,7 @@ class BombHelp(commands.HelpCommand):
     context: BombContext
     _DOC_FORMATS_ENV: ClassVar[dict[str, str]] = {
         'integer': '[integer](https://en.wikipedia.org/wiki/Integer)',
+        'boolean': '[boolean](https://en.wikipedia.org/wiki/Boolean_data_type)',
         'decimal': '[decimal](https://en.wikipedia.org/wiki/Decimal)',
         'css': '[css syntax](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value)'
     }

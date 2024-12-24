@@ -27,6 +27,7 @@ __all__: tuple[str, ...] = (
     'cornerdetect',
     'dilate',
     'canny',
+    'ascii',
 )
 
 BW: Final[np.ndarray] = np.array([[255, 255, 255], [0, 0, 0]])
@@ -168,7 +169,7 @@ def colordetect(_, img: np.ndarray, *, color: Color, fuzz: int = 15) -> np.ndarr
 
 @pil_image(width=400)
 @to_array('RGBA', cv2.COLOR_RGBA2BGRA)
-def cornerdetect(_, img: np.ndarray, *, dot_size: int = 3):
+def cornerdetect(_, img: np.ndarray, *, dot_size: int = 3) -> np.ndarray:
     most_common = cv2.resize(img, (1, 1))[0, 0,:-1]
     color = [
         int(val) for val in get_closest_color(most_common, BW, reverse=True)
@@ -194,3 +195,22 @@ def dilate(_, img: np.ndarray) -> list[np.ndarray]:
 @to_array('RGBA', cv2.COLOR_RGBA2BGRA)
 def canny(_, img: np.ndarray) -> np.ndarray:
     return cv2.Canny(img, 100, 200)
+
+@pil_image()
+@to_array('RGBA', cv2.COLOR_RGBA2BGRA)
+def ascii(_, img: np.ndarray, *, size: int = 10, invert: bool = True) -> str:
+    w, h, _ = img.shape
+
+    rows = int(h / w * (size / 2))
+    img = cv2.resize(img, (size, rows), cv2.INTER_CUBIC)
+
+    if invert:
+        img = ~img
+
+    img = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
+    return '\n'.join(
+        ''.join(
+            '@#S%?*+;:,. '[px // 25] for px in row
+        )
+        for row in img
+    )
