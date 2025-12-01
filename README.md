@@ -3,7 +3,7 @@
 A simple discord bot rewritten with some components from my older bots.
 
 ### It Features:
-- Basic Games using my (bad) [lib](https://github.com/Tom-the-Bomb/Discord-Games) *(still WIP)*
+- Basic Games using my [Discord-Games](https://github.com/Tom-the-Bomb/Discord-Games) library (unmaintained)
 - Image Manipulation utilizing:
     - Wand [(ImageMagick)](https://imagemagick.org/)
     - [Pillow](https://pillow.readthedocs.io/en/stable/)
